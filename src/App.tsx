@@ -14,176 +14,104 @@ import {
 } from 'lucide-react';
 import { useAuth } from './stores/useAuth';
 import logoImg from './assets/logo.png';
-import { clientApi, type ChartTemplate, type KpiTemplate } from './services/api';
+import { clientApi, type ChartTemplate, type KpiTemplate, type FormulaTemplate } from './services/api';
 import { TemplateChart } from './components/Charts/TemplateChart';
+import { ChartOptionsMenu } from './components/ChartOptionsMenu';
 import { calculateKPI } from './formulas/evaluator';
+import type { DatePeriod } from './utils/dateIntelligence';
+import { detectDateColumns, filterByDateRange, groupByPeriod } from './utils/dateIntelligence';
+import { computeGrowth, computePercentOfTotal } from './utils/computedFields';
 
 const ALL_CHART_IDS = [
-  'citySales',
+  // Starter (6)
   'topProducts',
-  'productMatrix',
-  'pareto',
   'categorySales',
-  'categoryProfitability',
-  'variantPopularity',
   'channelSales',
-  'channelEfficiency',
-  'promoCampaign',
-  'customerSegment',
-  'paymentMethods',
   'branchSales',
-  'orderFulfillment',
-  'hourlySales',
+  'paymentMethods',
   'weekdaySales',
-  'basketSize',
-  'staffSales',
-  'brandSales',
-  'supplierSales',
-  'serviceDuration',
-  'crossCategoryBranch',
-  'crossTimeCategory',
-  'crossChannelCategory',
-  'crossPaymentChannel',
-  'crossStaffCategory',
-  'discount',
-  'orderTypeMix',
-  'paymentProviderShare',
-  'courierEfficiency',
-  'tableRevenue',
+  // Complex Advanced (6)
+  'pareto',
+  'productMatrix',
   'promoRoi',
-  'customerLoyaltyMix',
+  'courierEfficiency',
   'variantProfitability',
-  'dataTable'
+  'revenueGrowth',
+  // Complex Table (3)
+  'staffPerformanceTable',
+  'profitabilityTable',
+  'channelMixTable',
 ];
 
-// Template seed berikut sudah memiliki padanan di dashboard analitik bawaan.
-// Tetap tampil di Chart Library, tetapi jangan dirender ulang di dashboard.
+
+// Template codes that already have built-in dashboard rendering.
+// Show in Chart Library, but don't re-render in dashboard.
 const BUILT_IN_TEMPLATE_CODES = new Set([
-  'REVENUE_TREND', 'TOP_PRODUCTS', 'CATEGORY_MIX', 'PARETO', 'PEAK_HOURS',
-  'WEEKDAY_SALES', 'PAYMENT_MIX', 'BRANCH_PERF', 'STAFF_PERF', 'PRODUCT_MATRIX',
-  'DATA_TABLE', 'CATEGORY_BRANCH', 'TIME_CATEGORY', 'DISCOUNT_EFFECTIVENESS',
-  'SERVICE_DURATION', 'BASKET_SIZE', 'CITY_SALES', 'BRAND_SALES', 'SUPPLIER_SALES',
-  'CHANNEL_CATEGORY', 'PAYMENT_CHANNEL', 'STAFF_CATEGORY', 'CHANNEL_EFFICIENCY',
-  'CATEGORY_PROFITABILITY', 'CHANNEL_MIX',
-  'PROMO_CAMPAIGN', 'CUSTOMER_SEGMENT', 'VARIANT_POPULARITY', 'ORDER_FULFILLMENT',
-  'ORDER_TYPE_MIX', 'PAYMENT_PROVIDER_SHARE', 'COURIER_EFFICIENCY', 'TABLE_REVENUE',
-  'PROMO_ROI', 'CUSTOMER_LOYALTY_MIX', 'VARIANT_PROFITABILITY'
+  'REVENUE_TREND', 'TOP_PRODUCTS', 'CATEGORY_MIX', 'PARETO',
+  'PRODUCT_MATRIX', 'PROMO_ROI', 'COURIER_EFFICIENCY', 'VARIANT_PROFITABILITY',
+  'BRANCH_PERF', 'PAYMENT_MIX', 'WEEKDAY_SALES',
+  'REVENUE_GROWTH', 'STAFF_PERF_TABLE', 'PROFITABILITY_TABLE', 'CHANNEL_MIX_TABLE',
 ]);
 
 const DEFAULT_ORDER = ALL_CHART_IDS;
 
 const DEFAULT_CHART_SIZES = {
-  citySales: 4,
   topProducts: 6,
-  productMatrix: 12,
-  pareto: 12,
   categorySales: 6,
-  categoryProfitability: 6,
-  variantPopularity: 6,
   channelSales: 6,
-  channelEfficiency: 6,
-  promoCampaign: 6,
-  customerSegment: 6,
-  paymentMethods: 4,
   branchSales: 6,
-  orderFulfillment: 6,
-  hourlySales: 12,
+  paymentMethods: 4,
   weekdaySales: 4,
-  basketSize: 4,
-  staffSales: 6,
-  brandSales: 4,
-  supplierSales: 4,
-  serviceDuration: 6,
-  crossCategoryBranch: 6,
-  crossTimeCategory: 6,
-  crossChannelCategory: 6,
-  crossPaymentChannel: 6,
-  crossStaffCategory: 6,
-  discount: 6,
-  orderTypeMix: 6,
-  paymentProviderShare: 6,
-  courierEfficiency: 6,
-  tableRevenue: 6,
+  pareto: 12,
+  productMatrix: 12,
   promoRoi: 6,
-  customerLoyaltyMix: 6,
+  courierEfficiency: 6,
   variantProfitability: 6,
-  dataTable: 12,
+  revenueGrowth: 12,
+  staffPerformanceTable: 12,
+  profitabilityTable: 12,
+  channelMixTable: 12,
 };
 
 const buildAnalystChartPlan = (data, isDemo = false) => {
   if (!data) return { order: DEFAULT_ORDER, sizes: DEFAULT_CHART_SIZES, hidden: [] };
   const { dimensions, charts, pareto, businessProfile } = data;
   const available = new Set();
-  if (pareto?.products?.items?.length > 0) available.add('pareto');
-  if (charts.productMatrix?.length > 0) available.add('productMatrix');
-  if (dimensions.product && charts.topProducts?.length > 0) {
-    available.add('topProducts');
-    available.add('dataTable');
-  }
+  // Starter charts (simple)
+  if (dimensions.product && charts.topProducts?.length > 0) available.add('topProducts');
   if (dimensions.category && charts.categorySales?.length > 0) available.add('categorySales');
   if (dimensions.channel && charts.channelSales?.length > 0) available.add('channelSales');
   if (dimensions.branch && charts.branchSales?.length > 0) available.add('branchSales');
-  if (charts.crossCategoryBranch?.length > 0) available.add('crossCategoryBranch');
-  if (charts.hourlySales?.length > 0) available.add('hourlySales');
-  if (charts.crossTimeCategory?.length > 0) available.add('crossTimeCategory');
-  if (charts.discountEffectiveness?.length > 0) available.add('discount');
-  if (dimensions.staff && charts.staffSales?.length > 0) available.add('staffSales');
-  if (dimensions.duration && charts.serviceDuration?.length > 0) available.add('serviceDuration');
-  if (charts.weekdaySales?.length > 0) available.add('weekdaySales');
-  if (charts.basketSize?.length > 0) available.add('basketSize');
   if (dimensions.paymentMethod && charts.paymentMethods?.length > 0) available.add('paymentMethods');
-  if (dimensions.city && charts.citySales?.length > 0) available.add('citySales');
-  if (dimensions.brand && charts.brandSales?.length > 0) available.add('brandSales');
-  if (dimensions.supplier && charts.supplierSales?.length > 0) available.add('supplierSales');
-  if (charts.crossChannelCategory?.length > 0) available.add('crossChannelCategory');
-  if (charts.crossPaymentChannel?.length > 0) available.add('crossPaymentChannel');
-  if (charts.crossStaffCategory?.length > 0) available.add('crossStaffCategory');
-  if (charts.channelEfficiency?.length > 0) available.add('channelEfficiency');
-  if (charts.categoryProfitability?.length > 0) available.add('categoryProfitability');
-  
-  // New Business Analytics Charts
-  if (charts.promoCampaign?.length > 0) available.add('promoCampaign');
-  if (charts.customerSegment?.length > 0) available.add('customerSegment');
-  if (charts.variantPopularity?.length > 0) available.add('variantPopularity');
-  if (charts.orderFulfillment?.length > 0) available.add('orderFulfillment');
-  if (charts.orderTypeMix?.length > 0) available.add('orderTypeMix');
-  if (charts.paymentProviderShare?.length > 0) available.add('paymentProviderShare');
-  if (charts.courierEfficiency?.length > 0) available.add('courierEfficiency');
-  if (charts.tableRevenue?.length > 0) available.add('tableRevenue');
+  if (charts.weekdaySales?.length > 0) available.add('weekdaySales');
+  // Advanced analytical charts
+  if (pareto?.products?.items?.length > 0) available.add('pareto');
+  if (charts.productMatrix?.length > 0) available.add('productMatrix');
   if (charts.promoRoi?.length > 0) available.add('promoRoi');
-  if (charts.customerLoyaltyMix?.length > 0) available.add('customerLoyaltyMix');
+  if (charts.courierEfficiency?.length > 0) available.add('courierEfficiency');
   if (charts.variantProfitability?.length > 0) available.add('variantProfitability');
+  // Complex
+  if (charts.trendSales?.length > 0) available.add('revenueGrowth');
+  if (charts.staffSales?.length > 0) available.add('staffPerformanceTable');
+  if (dimensions.product && charts.topProducts?.length > 0) available.add('profitabilityTable');
+  if (dimensions.channel && charts.channelSales?.length > 0) available.add('channelMixTable');
 
-  const profile = businessProfile?.type || '';
-  const preferred = profile.includes('Jasa')
-    ? ['staffSales', 'serviceDuration', 'crossStaffCategory', 'customerLoyaltyMix', 'weekdaySales', 'hourlySales', 'paymentProviderShare', 'orderTypeMix']
-    : profile.includes('Marketplace')
-      ? ['channelSales', 'courierEfficiency', 'promoRoi', 'orderTypeMix', 'paymentProviderShare', 'customerLoyaltyMix', 'citySales', 'crossChannelCategory', 'variantProfitability']
-      : profile.includes('F&B')
-        ? ['orderTypeMix', 'tableRevenue', 'variantPopularity', 'topProducts', 'hourlySales', 'weekdaySales', 'basketSize', 'promoRoi', 'paymentProviderShare', 'customerLoyaltyMix']
-        : profile.includes('Retail')
-          ? ['pareto', 'categoryProfitability', 'variantProfitability', 'customerLoyaltyMix', 'promoRoi', 'categorySales', 'crossCategoryBranch', 'brandSales', 'supplierSales', 'topProducts', 'branchSales', 'orderTypeMix']
-          : ['pareto', 'productMatrix', 'topProducts', 'channelSales', 'categorySales', 'crossCategoryBranch', 'branchSales', 'basketSize'];
-
-  const essentials = ['pareto', 'productMatrix', 'topProducts', 'channelSales', 'categorySales'];
+  const essentials = ['topProducts', 'categorySales', 'channelSales', 'branchSales', 'paymentMethods', 'weekdaySales'];
   const selected = [];
-  const maxSelected = isDemo ? 4 : 7;
+  const maxSelected = isDemo ? 4 : 11;
   
-  [...preferred, ...essentials].forEach(id => {
+  [...essentials].forEach(id => {
     if (available.has(id) && !selected.includes(id) && selected.length < maxSelected) selected.push(id);
   });
-  if (selected.length < (isDemo ? 3 : 5)) {
-    ALL_CHART_IDS.forEach(id => {
-      if (available.has(id) && !selected.includes(id) && selected.length < maxSelected) selected.push(id);
-    });
-  }
+  ALL_CHART_IDS.forEach(id => {
+    if (available.has(id) && !selected.includes(id) && selected.length < maxSelected) selected.push(id);
+  });
 
   const order = [...selected, ...ALL_CHART_IDS.filter(id => available.has(id) && !selected.includes(id))];
   const hidden = order.filter(id => !selected.includes(id));
   const sizes = { ...DEFAULT_CHART_SIZES };
   selected.forEach((id, index) => {
-    if (index < 2 && ['pareto', 'productMatrix', 'hourlySales'].includes(id)) sizes[id] = 12;
-    else if (['paymentMethods', 'weekdaySales', 'basketSize', 'citySales'].includes(id)) sizes[id] = 4;
+    if (index < 2 && ['pareto', 'productMatrix'].includes(id)) sizes[id] = 12;
     else sizes[id] = 6;
   });
   return { order, sizes, hidden };
@@ -337,6 +265,22 @@ const buildChartCopy = (data) => {
     variantProfitability: {
       title: 'Variant Margin vs Volume Matrix',
       subtitle: 'Pemetaan portofolio varian produk berdasarkan tingkat margin keuntungan vs volume penjualan. (Metrik: Margin %, Unit Terjual | Kolom: variant, cogs, sales_amount, quantity)',
+    },
+    revenueGrowth: {
+      title: 'Revenue Growth Trend',
+      subtitle: 'Tren pertumbuhan omzet bulanan dengan analisis momentum pertumbuhan. (Metrik: Omzet, Pertumbuhan % | Kolom: transaction_date, sales_amount)',
+    },
+    staffPerformanceTable: {
+      title: 'Staff Performance Breakdown',
+      subtitle: 'Analisis komprehensif performa staff: omzet, jumlah transaksi, rata-rata order, komisi. (Kolom: staff_name, sales_amount, transaction_id, staff_commission)',
+    },
+    profitabilityTable: {
+      title: 'Product Profitability Report',
+      subtitle: 'Laporan profitabilitas per produk: omzet, HPP, laba kotor, margin, unit terjual. (Kolom: product_name, sales_amount, cogs, gross_profit, quantity)',
+    },
+    channelMixTable: {
+      title: 'Channel Performance Dashboard',
+      subtitle: 'Performa channel penjualan: total omzet, transaksi, diskon, pelanggan unik. (Kolom: sales_channel, sales_amount, transaction_id, discount_amount, customer_id)',
     },
   };
 };
@@ -550,6 +494,10 @@ export default function UMKMInsight({
     if (window.__EXPORTED_DATA__?.kpiTemplates) return window.__EXPORTED_DATA__.kpiTemplates;
     return [];
   });
+  const [formulaTemplates, setFormulaTemplates] = useState<FormulaTemplate[]>(() => {
+    if (window.__EXPORTED_DATA__?.formulaTemplates) return window.__EXPORTED_DATA__.formulaTemplates;
+    return [];
+  });
   const [showKpiManager, setShowKpiManager] = useState(false);
   const [showAnalysisSummary, setShowAnalysisSummary] = useState(() => {
     if (window.__EXPORTED_DATA__) return false;
@@ -565,14 +513,58 @@ export default function UMKMInsight({
     if (window.__EXPORTED_DATA__?.chartLibraryMappings) return window.__EXPORTED_DATA__.chartLibraryMappings;
     try { return JSON.parse(localStorage.getItem('dashinsight_chart_mappings') || '{}'); } catch { return {}; }
   });
+
+  // --- Client-Side Custom Charts (Self-Serve) ---
+  const [clientCustomCharts, setClientCustomCharts] = useState<ChartTemplate[]>(() => {
+    try { return JSON.parse(localStorage.getItem('dashinsight_client_charts') || '[]'); } catch { return []; }
+  });
+  const [showChartBuilder, setShowChartBuilder] = useState(false);
+  const [builderForm, setBuilderForm] = useState({
+    chart_name: '',
+    chart_type: 'bar' as string,
+    chart_category: 'general' as string,
+    selected_formula: '' as string,
+    dimensions: [] as string[],  // grouping columns (X axis / table group by)
+    measures: [] as Array<{ column: string; aggregation: string }>,  // value columns with individual aggregation
+  });
+
+  // === FILTER & CHART OPTIONS STATE ===
+  const [filterDateRange, setFilterDateRange] = useState<{ from: string; to: string } | null>(null);
+  const [dimensionFilters, setDimensionFilters] = useState<Record<string, string[]>>({});
+  const [chartDateGrouping, setChartDateGrouping] = useState<Record<string, DatePeriod>>({});
+  const [chartSortOrder, setChartSortOrder] = useState<Record<string, 'asc' | 'desc'>>({});
+  const [chartShowLabels, setChartShowLabels] = useState<Record<string, boolean>>({});
+  const [chartPercentage, setChartPercentage] = useState<Record<string, boolean>>({});
+
+  // Apply date range + dimension filters to processedData
+  const filteredData = useMemo(() => {
+    let data = processedData;
+    // Apply date range
+    if (filterDateRange && filterDateRange.from && filterDateRange.to) {
+      const dateCols = detectDateColumns(data);
+      if (dateCols.length > 0) {
+        data = filterByDateRange(data, dateCols[0], filterDateRange.from, filterDateRange.to);
+      }
+    }
+    // Apply dimension filters
+    Object.entries(dimensionFilters).forEach(([col, vals]) => {
+      if (vals.length > 0) {
+        data = data.filter(row => vals.includes(String(row[col] || '')));
+      }
+    });
+    return data;
+  }, [processedData, filterDateRange, dimensionFilters]);
+
+  // Merge server templates + client custom charts
+  const allCustomChartTemplates = useMemo(
+    () => [...chartTemplates.filter(t => !BUILT_IN_TEMPLATE_CODES.has(t.chart_code.trim().toUpperCase())), ...clientCustomCharts],
+    [chartTemplates, clientCustomCharts],
+  );
   const availableDataColumns = useMemo(
     () => [...new Set(processedData.slice(0, 100).flatMap(row => Object.keys(row)))].filter(column => !column.startsWith('__')).sort(),
     [processedData],
   );
-  const customChartTemplates = useMemo(
-    () => chartTemplates.filter(template => !BUILT_IN_TEMPLATE_CODES.has(template.chart_code.trim().toUpperCase())),
-    [chartTemplates],
-  );
+  // customChartTemplates removed — use allCustomChartTemplates instead
   const autoLayoutDatasetRef = useRef(null);
   const mainScrollRef = useRef(null);
   const pendingScrollRestoreRef = useRef(null);
@@ -891,10 +883,14 @@ export default function UMKMInsight({
       if (window.__EXPORTED_DATA__.kpiTemplates) {
         setKpiTemplates(window.__EXPORTED_DATA__.kpiTemplates);
       }
+      if (window.__EXPORTED_DATA__.formulaTemplates) {
+        setFormulaTemplates(window.__EXPORTED_DATA__.formulaTemplates);
+      }
       return;
     }
     if (!token) return;
     clientApi.getKpiTemplates(token).then(response => setKpiTemplates(response.kpis || [])).catch(() => setKpiTemplates([]));
+    clientApi.getFormulaTemplates(token).then(response => setFormulaTemplates(response.formulas || [])).catch(() => setFormulaTemplates([]));
   }, [token, isDemo]);
 
   useEffect(() => {
@@ -909,6 +905,86 @@ export default function UMKMInsight({
   useEffect(() => {
     try { localStorage.setItem('dashinsight_chart_mappings', JSON.stringify(chartLibraryMappings)); } catch { }
   }, [chartLibraryMappings]);
+
+  // Persist client custom charts
+  useEffect(() => {
+    try { localStorage.setItem('dashinsight_client_charts', JSON.stringify(clientCustomCharts)); } catch { }
+  }, [clientCustomCharts]);
+
+  // Handler: Save custom chart from builder form (Tableau-like dimensions + measures)
+  const handleSaveCustomChart = useCallback(() => {
+    if (!builderForm.chart_name || builderForm.dimensions.length === 0 || builderForm.measures.length === 0) return;
+
+    const newId = `custom_${Date.now()}`;
+    const isTable = builderForm.chart_type === 'table';
+
+    // Build chart_fields from dimensions + measures
+    const chartFields = [
+      ...builderForm.dimensions.map((col, i) => ({
+        id: `dim_${i}`,
+        field_label: col,
+        field_role: 'x',
+        data_type: 'string',
+      })),
+      ...builderForm.measures.map((m, i) => ({
+        id: `mea_${i}`,
+        field_label: m.column,
+        field_role: i === 0 ? 'y' : 'y_line',
+        data_type: 'number',
+      })),
+    ];
+
+    const dimLabels = builderForm.dimensions.join(', ');
+    const meaLabels = builderForm.measures.map(m => `${m.aggregation.toUpperCase()}(${m.column})`).join(', ');
+    const description = isTable
+      ? `Tabel: dimensi [${dimLabels}] | ukuran [${meaLabels}]`
+      : `Chart: dimensi [${dimLabels}] | ukuran [${meaLabels}]`;
+
+    const newChart: ChartTemplate = {
+      id: newId,
+      chart_code: `CLIENT_${newId.toUpperCase()}`,
+      chart_name: builderForm.chart_name,
+      description,
+      chart_type: builderForm.chart_type,
+      chart_category: builderForm.chart_category,
+      business_type: '',
+      default_size: isTable ? 12 : 6,
+      default_order: 100,
+      status: 'active',
+      version: 1,
+      updated_at: new Date().toISOString(),
+      chart_fields: chartFields,
+      aggregation: builderForm.measures[0]?.aggregation || 'sum',
+    };
+
+    setClientCustomCharts(prev => [...prev, newChart]);
+
+    // Store field mappings: dimensions + measures + aggregation per measure
+    const mapping: Record<string, string> = {};
+    builderForm.dimensions.forEach((col, i) => { mapping[`dim_${i}`] = col; });
+    builderForm.measures.forEach((m, i) => {
+      mapping[`mea_${i}`] = m.column;
+      mapping[`mea_${i}_agg`] = m.aggregation;
+    });
+    mapping['_dimensions'] = String(builderForm.dimensions.length);
+    mapping['_measures'] = String(builderForm.measures.length);
+
+    setChartLibraryMappings(prev => ({ ...prev, [newId]: mapping }));
+
+    // Add to dashboard
+    setChartOrder(prev => [...prev, `library:${newId}`]);
+
+    // Reset form
+    setBuilderForm({ chart_name: '', chart_type: 'bar', chart_category: 'general', selected_formula: '', dimensions: [], measures: [] });
+    setShowChartBuilder(false);
+  }, [builderForm]);
+
+  // Handler: Delete a client-created custom chart
+  const handleDeleteCustomChart = useCallback((chartId: string) => {
+    setClientCustomCharts(prev => prev.filter(c => c.id !== chartId));
+    setChartOrder(prev => prev.filter(id => id !== `library:${chartId}`));
+    setHiddenCharts(prev => prev.filter(id => id !== `library:${chartId}`));
+  }, []);
 
   const getMappedColumn = useCallback((template: ChartTemplate, field) => {
     const localMapping = chartLibraryMappings[template.id]?.[field.id];
@@ -2256,7 +2332,7 @@ export default function UMKMInsight({
       if (!draggedChart || draggedChart === targetId) return;
 
       // Build full order including custom chart IDs with library: prefix
-      const customIds = customChartTemplates.map(t => `library:${t.id}`).filter(id => !chartOrder.includes(id));
+      const customIds = allCustomChartTemplates.map(t => `library:${t.id}`).filter(id => !chartOrder.includes(id));
       const fullOrder = [...chartOrder, ...customIds];
       const newOrder = [...fullOrder];
       const draggedIdx = newOrder.indexOf(draggedChart);
@@ -3120,7 +3196,7 @@ export default function UMKMInsight({
                 };
 
                 // Add custom library templates dynamically into chartElements
-                customChartTemplates.forEach(template => {
+                allCustomChartTemplates.forEach(template => {
                   const id = `library:${template.id}`;
                   const current = chartViews[id] || 'auto';
                   const views = [
@@ -3177,7 +3253,9 @@ export default function UMKMInsight({
                         onDrop={handleDrop}
                         style={getAdaptiveCardStyle(id, template.default_size || 6)}
                       >
-                        <TemplateChart template={template} rows={chartDataToPass} metricView={metricView} viewType={current} fieldMapping={chartLibraryMappings[template.id]} />
+                        <TemplateChart template={template} rows={chartDataToPass} metricView={metricView} viewType={current} fieldMapping={chartLibraryMappings[template.id]}
+                          sortOrder={chartSortOrder[template.id] || 'desc'} showLabels={chartShowLabels[template.id] || false}
+                          percentageView={chartPercentage[template.id] || false} />
                       </ChartCard>
                     );
                   }
@@ -3197,7 +3275,9 @@ chartElements[id] = (
                       style={getAdaptiveCardStyle(id, template.default_size || 6)}
                       className="min-h-[340px]"
                     >
-                      <TemplateChart template={template} rows={processedData} metricView={metricView} viewType={current} fieldMapping={chartLibraryMappings[template.id]} />
+                      <TemplateChart template={template} rows={filteredData} metricView={metricView} viewType={current} fieldMapping={chartLibraryMappings[template.id]}
+                        sortOrder={chartSortOrder[template.id] || 'desc'} showLabels={chartShowLabels[template.id] || false}
+                        percentageView={chartPercentage[template.id] || false} />
                     </ChartCard>
                   );
                 });
@@ -3206,11 +3286,11 @@ chartElements[id] = (
                 const cleanChartOrder = chartOrder.filter(id => {
                   if (id.startsWith('library:')) {
                     const rawId = id.replace('library:', '');
-                    return customChartTemplates.some(t => t.id === rawId);
+                    return allCustomChartTemplates.some(t => t.id === rawId);
                   }
                   return true;
                 });
-                const customIds = customChartTemplates.map(t => `library:${t.id}`).filter(id => !cleanChartOrder.includes(id));
+                const customIds = allCustomChartTemplates.map(t => `library:${t.id}`).filter(id => !cleanChartOrder.includes(id));
                 const allVisibleIds = [...cleanChartOrder, ...customIds];
 
                 return allVisibleIds.map(id => {
@@ -3263,7 +3343,7 @@ chartElements[id] = (
                       onClick={() => handleRestoreChart(id)}
                       className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-[#F1FAF5] hover:border-[#276749] hover:text-[#276749] transition-colors flex items-center gap-2 shadow-sm"
                     >
-                      <Plus className="w-4 h-4" /> {chartCopy[id]?.title || customChartTemplates.find(template => `library:${template.id}` === id)?.chart_name || id}
+                      <Plus className="w-4 h-4" /> {chartCopy[id]?.title || allCustomChartTemplates.find(template => `library:${template.id}` === id)?.chart_name || id}
                     </button>
                   );
                 })}
@@ -3271,10 +3351,207 @@ chartElements[id] = (
             </section>
           )}
 
+          {/* FAB: Buat Chart Baru */}
+          {!isDemo && (
+            <button
+              type="button"
+              onClick={() => setShowChartBuilder(true)}
+              className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#276749] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#1f533a] transition-all hover:scale-105 print:hidden"
+              title="Buat chart baru"
+            >
+              <Plus className="w-5 h-5" /> Buat Chart Baru
+            </button>
+          )}
+
+          {/* Chart Builder Modal */}
+          {showChartBuilder && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+              <button className="fixed inset-0 bg-black/50" onClick={() => setShowChartBuilder(false)} aria-label="Tutup" />
+              <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl">
+                <div className="flex items-start justify-between border-b border-gray-200 px-5 py-4">
+                  <div>
+                    <h2 className="font-bold text-gray-900">Buat Chart Baru</h2>
+                    <p className="mt-1 text-sm text-gray-500">Pilih kolom dataset untuk sumbu X dan Y</p>
+                  </div>
+                  <button onClick={() => setShowChartBuilder(false)} className="rounded-md p-1 text-gray-500 hover:bg-gray-100" aria-label="Tutup">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <div className="space-y-4 p-5 max-h-[70vh] overflow-y-auto">
+                  {/* Nama Chart */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nama Chart</label>
+                    <input type="text" placeholder="Contoh: Omzet per Kategori per Bulan" value={builderForm.chart_name} onChange={e => setBuilderForm(prev => ({ ...prev, chart_name: e.target.value }))} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                  </div>
+
+                  {/* Tipe Chart */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Chart</label>
+                    <select value={builderForm.chart_type} onChange={e => setBuilderForm(prev => ({ ...prev, chart_type: e.target.value, dimensions: [], measures: [] }))} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
+                      <option value="bar">Bar (Batang)</option>
+                      <option value="line">Line (Garis)</option>
+                      <option value="pie">Pie (Lingkaran)</option>
+                      <option value="doughnut">Doughnut (Donat)</option>
+                      <option value="table">Table (Tabel)</option>
+                    </select>
+                  </div>
+
+                  {/* Kategori */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                    <select value={builderForm.chart_category} onChange={e => setBuilderForm(prev => ({ ...prev, chart_category: e.target.value }))} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
+                      <option value="general">Umum</option>
+                      <option value="comparison">Perbandingan</option>
+                      <option value="composition">Komposisi</option>
+                      <option value="distribution">Distribusi</option>
+                      <option value="trend">Tren</option>
+                    </select>
+                  </div>
+
+                  {/* Metrik Cepat */}
+                  {formulaTemplates.length > 0 && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                      <label className="block text-xs font-bold text-amber-800 mb-1.5">
+                        Metrik Cepat (Formula Library)
+                        <span className="font-normal text-amber-600 ml-1">— pilih untuk auto-add ukuran</span>
+                      </label>
+                      <select value="" onChange={e => {
+                        const formulaId = e.target.value;
+                        if (!formulaId) return;
+                        const f = formulaTemplates.find(t => t.id === formulaId);
+                        if (!f) return;
+                        const json = f.formula_json as any;
+                        let col = '';
+                        let agg = 'sum';
+                        if (json?.field) { col = json.field; agg = json.operation?.toLowerCase() || 'sum'; }
+                        else if (json?.type === 'derived') { col = json.left?.field || json.left?.left?.field || ''; agg = 'sum'; }
+                        if (col && !builderForm.measures.find(m => m.column === col && m.aggregation === agg)) {
+                          setBuilderForm(prev => ({ ...prev, measures: [...prev.measures, { column: col, aggregation: agg }], chart_name: prev.chart_name || f.formula_name }));
+                        }
+                      }} className="w-full rounded-md border border-amber-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        <option value="">+ Tambah metrik dari library...</option>
+                        {[...new Set(formulaTemplates.map(f => f.category || 'kpi'))].map(cat => (
+                          <optgroup key={cat} label={cat.toUpperCase()}>
+                            {formulaTemplates.filter(f => (f.category || 'kpi') === cat).map(f => (
+                              <option key={f.id} value={f.id}>{f.formula_name} — {f.description || f.output_type}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* === DIMENSIONS === */}
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                    <label className="block text-xs font-bold text-blue-800 mb-1.5">
+                      Dimensi (Pengelompok)
+                      <span className="font-normal text-blue-600 ml-1">— kolom kategori/teks untuk sumbu X / group by</span>
+                    </label>
+                    <select value="" onChange={e => {
+                      const col = e.target.value;
+                      if (col && !builderForm.dimensions.includes(col)) {
+                        setBuilderForm(prev => ({ ...prev, dimensions: [...prev.dimensions, col] }));
+                      }
+                      e.target.value = '';
+                    }} className="w-full rounded-md border border-blue-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                      <option value="">+ Tambah dimensi...</option>
+                      {availableDataColumns.filter(c => !builderForm.dimensions.includes(c)).map(col => (
+                        <option key={col} value={col}>{col}</option>
+                      ))}
+                    </select>
+                    {builderForm.dimensions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {builderForm.dimensions.map(col => (
+                          <span key={col} className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                            {col}
+                            <button type="button" onClick={() => setBuilderForm(prev => ({ ...prev, dimensions: prev.dimensions.filter(c => c !== col) }))} className="text-blue-500 hover:text-blue-700">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* === MEASURES === */}
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                    <label className="block text-xs font-bold text-emerald-800 mb-1.5">
+                      Ukuran (Metric)
+                      <span className="font-normal text-emerald-600 ml-1">— kolom angka + rumus perhitungan</span>
+                    </label>
+                    <select value="" onChange={e => {
+                      const col = e.target.value;
+                      if (!col) return;
+                      // Detect if numeric
+                      const isNum = processedData.length > 0 && processedData.some(row => typeof row[col] === 'number');
+                      const agg = isNum ? 'sum' : 'count';
+                      if (!builderForm.measures.find(m => m.column === col)) {
+                        setBuilderForm(prev => ({ ...prev, measures: [...prev.measures, { column: col, aggregation: agg }] }));
+                      }
+                      e.target.value = '';
+                    }} className="w-full rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                      <option value="">+ Tambah ukuran...</option>
+                      {availableDataColumns.filter(c => !builderForm.measures.find(m => m.column === c)).map(col => (
+                        <option key={col} value={col}>{col}</option>
+                      ))}
+                    </select>
+                    {builderForm.measures.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        {builderForm.measures.map((m, idx) => (
+                          <div key={idx} className="flex items-center gap-2 rounded bg-white border border-emerald-100 px-2 py-1.5">
+                            <span className="text-[11px] font-semibold text-emerald-700 min-w-[100px] truncate">{m.column}</span>
+                            <select value={m.aggregation} onChange={e => setBuilderForm(prev => {
+                              const newMeasures = [...prev.measures];
+                              newMeasures[idx] = { ...newMeasures[idx], aggregation: e.target.value };
+                              return { ...prev, measures: newMeasures };
+                            })} className="flex-1 rounded border border-emerald-200 bg-white px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                              <option value="sum">Sum</option>
+                              <option value="avg">Avg</option>
+                              <option value="count">Count</option>
+                              <option value="count_distinct">Count Distinct</option>
+                              <option value="max">Max</option>
+                              <option value="min">Min</option>
+                            </select>
+                            <button type="button" onClick={() => setBuilderForm(prev => ({ ...prev, measures: prev.measures.filter((_, i) => i !== idx) }))} className="text-gray-400 hover:text-red-500">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Preview info */}
+                  {(builderForm.dimensions.length > 0 || builderForm.measures.length > 0) && (
+                    <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+                      <p className="text-[11px] text-gray-500">
+                        {builderForm.chart_type === 'table' ? 'Tabel' : builderForm.chart_type === 'bar' ? 'Batang' : builderForm.chart_type === 'line' ? 'Garis' : builderForm.chart_type === 'pie' || builderForm.chart_type === 'doughnut' ? 'Lingkaran' : 'Chart'}:
+                        {builderForm.dimensions.length > 0 && <span className="font-medium text-gray-700"> {builderForm.dimensions.join(', ')}</span>}
+                        {builderForm.dimensions.length > 0 && builderForm.measures.length > 0 && <span className="text-gray-400"> → </span>}
+                        {builderForm.measures.map(m => <span key={m.column} className="font-medium text-emerald-700"> {m.aggregation.toUpperCase()}({m.column})</span>)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4">
+                  <p className="text-xs text-gray-500">Chart akan muncul di dashboard & Visualisasi Data.</p>
+                  <button
+                    onClick={handleSaveCustomChart}
+                    disabled={!builderForm.chart_name || builderForm.dimensions.length === 0 || builderForm.measures.length === 0}
+                    className="rounded-md bg-[#276749] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1f533a] transition-colors"
+                  >
+                    Simpan Chart
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     );
   };
+
 
 
   // --- SUB-COMPONENTS ---
@@ -3803,9 +4080,18 @@ chartElements[id] = (
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Visualisasi Data</h1>
               <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <p className="text-sm text-gray-500">Sesuaikan chart dengan kolom dataset aktif. Pengaturan hanya disimpan di perangkat ini.</p>
-                <div className="relative max-w-xs w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input type="text" placeholder="Cari nama chart..." value={chartSearchQuery} onChange={e => setChartSearchQuery(e.target.value)} className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowChartBuilder(true)}
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#276749] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#1f533a] transition-colors"
+                  >
+                    <Plus className="h-4 w-4" /> Buat Chart Baru
+                  </button>
+                  <div className="relative max-w-xs w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input type="text" placeholder="Cari nama chart..." value={chartSearchQuery} onChange={e => setChartSearchQuery(e.target.value)} className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                  </div>
                 </div>
               </div>
               {processedData.length === 0 ? (
@@ -3816,11 +4102,11 @@ chartElements[id] = (
                 </div>
               ) : chartTemplates.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {chartTemplates.filter(template => {
-                    const isOnDashboard = chartOrder.includes(`library:${template.id}`) || chartOrder.includes(template.chart_code);
-                    const hasMappedFields = (template.chart_fields || []).length === 0 || (template.chart_fields || []).some(field => Boolean(getMappedColumn(template, field)));
-                    return isOnDashboard || hasMappedFields;
-                  }).filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
+                  {[...chartTemplates.filter(template => {
+                    const code = template.chart_code.trim().toUpperCase();
+                    const isBuiltIn = BUILT_IN_TEMPLATE_CODES.has(code);
+                    return isBuiltIn;
+                  }), ...clientCustomCharts].filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
                     <div key={tpl.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: tpl.chart_type === 'pie' || tpl.chart_type === 'doughnut' ? '#eff6ff' : tpl.chart_type === 'line' ? '#ecfdf5' : '#f5f3ff' }}>
@@ -3830,7 +4116,14 @@ chartElements[id] = (
                           <h3 className="text-sm font-bold text-gray-900 truncate">{tpl.chart_name}</h3>
                           <p className="text-xs text-gray-500">{tpl.chart_type} · {tpl.chart_category || 'general'}</p>
                         </div>
-                        <button type="button" onClick={() => setMappingTemplate(tpl)} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"><Settings className="h-3.5 w-3.5" /> Atur</button>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => setMappingTemplate(tpl)} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"><Settings className="h-3.5 w-3.5" /> Atur</button>
+                          {clientCustomCharts.some(cc => cc.id === tpl.id) && (
+                            <button type="button" onClick={() => { if (confirm('Hapus chart ini?')) handleDeleteCustomChart(tpl.id); }} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {tpl.description && <p className="text-xs text-gray-500 mb-3">{tpl.description}</p>}
                       <div className="flex flex-wrap gap-1">

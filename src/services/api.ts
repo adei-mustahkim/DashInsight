@@ -123,7 +123,7 @@ export interface AdminClient extends Client { user?: { id: string; email: string
 export interface AdminClientDetail extends Client { user?: { id: string; email: string; last_login_at: string | null }; subscriptions?: any[]; datasets?: any[]; }
 export interface AdminUser { id: string; name: string; email: string; role: string; status: string; last_login_at?: string | null; created_at: string; }
 export interface Subscription { id: string; client_id: string; start_date: string; end_date: string; duration_days: number; status: string; notes?: string; created_at: string; }
-export interface ChartTemplate { id: string; chart_code: string; chart_name: string; description?: string; chart_type: string; chart_category?: string; business_type?: string; default_size: number; default_order: number; status: string; version: number; updated_at?: string; chart_fields?: any[]; chart_template_formulas?: any[]; }
+export interface ChartTemplate { id: string; chart_code: string; chart_name: string; description?: string; chart_type: string; chart_category?: string; business_type?: string; default_size: number; default_order: number; status: string; version: number; updated_at?: string; chart_fields?: any[]; chart_template_formulas?: any[]; aggregation?: string; }
 export interface ChartField { id: string; chart_template_id: string; field_role: string; field_label: string; required_data_type?: string; is_required: boolean; allow_multiple: boolean; }
 export interface ChartFormulaLink { id: string; chart_template_id: string; formula_template_id: string; formula_role: string; is_required: boolean; sort_order: number; formula_template?: any; }
 export type ChartFormula = ChartFormulaLink;

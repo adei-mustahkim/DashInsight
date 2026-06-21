@@ -183,6 +183,26 @@ model dataset_metadata {
   client clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
 }
 
+// === Client Custom Charts (Self-Serve Analytics) ===
+model client_custom_charts {
+  id              String   @id @default(uuid())
+  client_id       String
+  chart_name      String
+  chart_type      String   // bar | line | pie | doughnut
+  x_column        String
+  y_column        String
+  aggregation     String   @default("sum") // sum | avg | count | max | min
+  chart_category  String   @default("general")
+  chart_code      String
+  description     String?
+  default_size    Int      @default(6)
+  status          String   @default("active") // active | deleted
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  client clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+}
+
 // === Audit Logs ===
 model audit_logs {
   id              String   @id @default(uuid())
