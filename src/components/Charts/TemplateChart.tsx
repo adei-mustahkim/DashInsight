@@ -286,7 +286,8 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
   if (chartType === 'circular_progress') {
     const data = aggregateBy(rows, labelField, valueField, 'sum');
     const total = data.reduce((sum, item) => sum + item.value, 0);
-    const target = template.chart_fields?.find(f => f.field_role === 'target')?.field_label;
+    const targetField = template.chart_fields?.find(f => f.field_role === 'target');
+    const target = targetField ? (fieldMapping[targetField.id] || targetField.field_label) : null;
     const targetValue = target ? (Number(target) || total * 1.2) : total * 1.2;
     const percentage = Math.min(100, Math.round((total / targetValue) * 100)) || 0;
 
