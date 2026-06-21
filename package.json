@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:server": "cd server && npm install && npx prisma generate && npm run build",
+    "build:server": "cd server && npm install --include=dev && npx prisma generate && npm run build",
     "vercel-build": "npm run build:server && npm run build",
     "build:template": "node scripts/build-template-workbook.mjs",
     "check": "npm run build:template && npm run lint && npm run build",
