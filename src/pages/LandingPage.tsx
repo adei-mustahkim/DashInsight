@@ -515,29 +515,37 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="mt-10 columns-1 gap-5 md:columns-2 lg:columns-3 xl:columns-4">
-              {testimonials.map(item => (
-                <article key={item.name} className="group relative mb-5 break-inside-avoid overflow-hidden rounded-[1.6rem] border border-[#DDE7E1] bg-white p-6 shadow-[0_16px_40px_rgba(12,31,23,0.06)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(12,31,23,0.1)]">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#236043] via-[#63B88A] to-[#DCEEE4]" />
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#DCEEE4] text-sm font-semibold text-[#276749] shadow-inner">
-                        {item.initials}
+            <div className="mt-10 w-full overflow-hidden relative">
+              {/* Fade masks for edges */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-24 bg-gradient-to-r from-[#F6FAF7] to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-24 bg-gradient-to-l from-[#F6FAF7] to-transparent" />
+              
+              <div className="flex w-max animate-marquee gap-5 py-4 hover:animate-pause">
+                {[...testimonials, ...testimonials].map((item, idx) => (
+                  <article key={item.name + idx} className="w-[340px] shrink-0 group relative overflow-hidden rounded-[1.6rem] border border-[#DDE7E1] bg-white p-6 shadow-[0_8px_30px_rgba(12,31,23,0.04)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(12,31,23,0.08)] flex flex-col justify-between">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#236043] via-[#63B88A] to-[#DCEEE4]" />
+                    <div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#DCEEE4] text-sm font-semibold text-[#276749] shadow-inner">
+                            {item.initials}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[#173F2E] text-sm">{item.name}</p>
+                            <p className="text-xs text-[#607269]">{item.role}</p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#F0F7F3] px-2.5 py-1 text-[11px] font-semibold text-[#2B6B4B]">{item.result}</span>
                       </div>
-                      <div>
-                        <p className="font-semibold text-[#173F2E]">{item.name}</p>
-                        <p className="text-xs text-[#607269]">{item.role}</p>
-                      </div>
+                      <p className="mt-5 text-[14.5px] leading-relaxed text-[#41554B]">“{item.quote}”</p>
                     </div>
-                    <span className="rounded-full bg-[#F0F7F3] px-2.5 py-1 text-[11px] font-semibold text-[#2B6B4B]">{item.result}</span>
-                  </div>
-                  <p className="mt-5 text-[15px] leading-relaxed text-[#41554B]">“{item.quote}”</p>
-                  <div className="mt-6 flex items-center justify-between border-t border-[#EDF3EF] pt-4 text-xs text-[#7A8B82]">
-                    <span className="font-medium">{item.business}</span>
-                    <span className="flex items-center gap-1.5 text-[#2B6B4B]"><span className="h-1.5 w-1.5 rounded-full bg-[#2F8A60]" />Aktif</span>
-                  </div>
-                </article>
-              ))}
+                    <div className="mt-6 flex items-center justify-between border-t border-[#EDF3EF] pt-4 text-xs text-[#7A8B82]">
+                      <span className="font-medium">{item.business}</span>
+                      <span className="flex items-center gap-1.5 text-[#2B6B4B]"><span className="h-1.5 w-1.5 rounded-full bg-[#2F8A60]" />Aktif</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>

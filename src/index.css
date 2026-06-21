@@ -129,6 +129,28 @@ html {
   transform: perspective(1400px) rotateY(0) rotateX(0) translateY(-3px);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 .landing-demo-frame {
   border-radius: 0.75rem;
   box-shadow: 0 8px 24px rgb(19 51 36 / 14%);
