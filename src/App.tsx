@@ -3173,6 +3173,7 @@ export default function UMKMInsight({
                         title={template.chart_name}
                         subtitle={template.description}
                         action={<ViewToggle id={id} views={views} current={current} onSelect={handleChartViewChange} />}
+                        onSettings={() => setMappingTemplate(template)}
                         onHide={handleHideChart}
                         onResize={handleResizeChart}
                         preferredSize={template.default_size || 6}
@@ -3195,6 +3196,7 @@ chartElements[id] = (
                       title={template.chart_name}
                       subtitle={template.description}
                       action={<ViewToggle id={id} views={views} current={current} onSelect={handleChartViewChange} />}
+                      onSettings={() => setMappingTemplate(template)}
                       onHide={handleHideChart}
                       onResize={handleResizeChart}
                       preferredSize={template.default_size || 6}
@@ -3335,7 +3337,7 @@ chartElements[id] = (
     </div>
   );
 
-  const ChartCard = ({ id, title, subtitle, action, children, className = '', style = {}, compact = false, onHide, onResize, preferredSize = 'standard', draggable, onDragStart, onDragOver, onDrop }) => (
+  const ChartCard = ({ id, title, subtitle, action, children, className = '', style = {}, compact = false, onHide, onResize, preferredSize = 'standard', draggable, onDragStart, onDragOver, onDrop, onSettings }: any) => (
     <div
       draggable={draggable}
       onDragStart={draggable ? (e) => onDragStart(e, id) : undefined}
@@ -3365,6 +3367,16 @@ chartElements[id] = (
                 title="Geser untuk mengatur lebar grafik"
               />
             </div>
+          )}
+          {id && onSettings && (
+            <button
+              type="button"
+              onClick={() => onSettings()}
+              className="p-1 text-gray-400 hover:text-[#276749] hover:bg-[#276749]/10 rounded-md transition-colors"
+              title="Atur kolom chart"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
           )}
           {id && onHide && (
             <button
