@@ -3844,11 +3844,15 @@ chartElements[id] = (
                     <div className="max-h-[60vh] space-y-4 overflow-y-auto p-5">
                       {(mappingTemplate.chart_fields || []).map(field => (
                         <label key={field.id} className="block text-sm font-medium text-gray-700">
-                          {field.field_label} <span className="text-xs font-normal text-gray-500">({field.field_role}{field.is_required ? ', wajib' : ''})</span>
-                          <select value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
-                            <option value="">Tidak digunakan</option>
-                            {availableDataColumns.map(column => <option key={column} value={column}>{column}</option>)}
-                          </select>
+                          {field.field_label} <span className="text-xs font-normal text-gray-500">({field.field_role === 'target' ? 'angka target' : field.field_role}{field.is_required ? ', wajib' : ''})</span>
+                          {field.field_role === 'target' ? (
+                            <input type="text" placeholder="Contoh: 150000000" value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                          ) : (
+                            <select value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
+                              <option value="">Tidak digunakan</option>
+                              {availableDataColumns.map(column => <option key={column} value={column}>{column}</option>)}
+                            </select>
+                          )}
                         </label>
                       ))}
                     </div>
