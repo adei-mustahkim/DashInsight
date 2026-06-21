@@ -3144,7 +3144,7 @@ export default function UMKMInsight({
 
                   if (template.chart_type === 'crosstab') {
                     const crossData = template.chart_code === 'PAYMENT_PROVIDER' ? (charts.paymentProviderShare || []) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (charts.customerLoyaltyMix || []) : []);
-                    const crossCategories = template.chart_code === 'PAYMENT_PROVIDER' ? (['BCA', 'Mandiri', 'Gopay', 'OVO', 'ShopeePay', 'Tunai']) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (['Pelanggan Baru', 'Pelanggan Kembali']) : []);
+                    const crossCategories = template.chart_code === 'PAYMENT_PROVIDER' ? (charts.paymentProviderShare?.categories || []) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (charts.customerLoyaltyMix?.categories || []) : []);
 
                     chartElements[id] = (
                       <DynamicCrossCard
