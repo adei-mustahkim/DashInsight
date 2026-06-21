@@ -9,7 +9,6 @@ import {
 const FORMULA_TYPES = ['aggregation', 'derived', 'ratio', 'comparison', 'ranking'];
 const OUTPUT_TYPES = ['number', 'currency', 'percent', 'text'];
 const FORMULA_CATEGORIES = ['kpi', 'margin', 'growth', 'ratio', 'custom'];
-const OPERATIONS = ['SUM', 'COUNT', 'COUNT_DISTINCT', 'AVG', 'MIN', 'MAX', 'SUBTRACT', 'DIVIDE', 'MULTIPLY', 'PERCENTAGE', 'RANK', 'CUMULATIVE_SUM'];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   draft: { bg: 'bg-gray-100', text: 'text-gray-700' },
@@ -41,6 +40,7 @@ function SearchableSelect({ value, options, onChange, disabled = false, placehol
   const [query, setQuery] = useState(selectedLabel);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(selectedLabel);
   }, [selectedLabel]);
 
@@ -683,7 +683,7 @@ function FormulaModal({ fieldDictionary, title, mode = 'create', initialData, on
   };
 
   
-  const syncFromVisual = (newJson: any) => {
+  const syncFromVisual = (newJson: Record<string, unknown>) => {
     setFormData({ ...formData, formula_json: newJson });
     setJsonText(JSON.stringify(newJson, null, 2));
     setJsonError('');

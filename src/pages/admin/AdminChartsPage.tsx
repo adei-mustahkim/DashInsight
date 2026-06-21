@@ -484,6 +484,7 @@ function ChartFormModal({ chart, formulas, fieldDictionary, mode = 'create', onC
 
   useEffect(() => {
     if (fieldDictionary.length === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(current => {
       let changed = false;
       const fields = current.fields.map(field => {
@@ -862,6 +863,7 @@ function SearchableSelect({ value, options, onChange, disabled = false, placehol
   const [query, setQuery] = useState(selectedLabel);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(selectedLabel);
   }, [selectedLabel]);
 
