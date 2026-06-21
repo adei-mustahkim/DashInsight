@@ -11,7 +11,7 @@ import {
   type CreateChartPayload, type FieldDictionary, type FormulaTemplate,
 } from '../../services/api';
 
-const CHART_TYPES = ['bar', 'line', 'pie', 'doughnut', 'table', 'scatter', 'smart_pareto', 'smart_matrix', 'smart_map', 'smart_cross'];
+const CHART_TYPES = ['bar', 'line', 'pie', 'doughnut', 'table', 'scatter', 'smart_pareto', 'smart_matrix', 'smart_map', 'smart_cross', 'circular_progress'];
 const CHART_TYPE_LABELS: Record<string, string> = {
   bar: 'Bar Chart  -  Comparative Analysis',
   line: 'Line Chart  -  Trend Analysis',
@@ -23,8 +23,9 @@ const CHART_TYPE_LABELS: Record<string, string> = {
   smart_matrix: 'Bubble Matrix  -  Volume vs Margin',
   smart_map: 'Geographic Distribution  -  City Performance',
   smart_cross: 'Cross-Category Analysis  -  Channel Mix',
+  circular_progress: 'Circular Progress  -  Single Metric Target',
 };
-const CHART_CATEGORIES = ['comparison', 'trend', 'composition', 'distribution'];
+const CHART_CATEGORIES = ['comparison', 'trend', 'composition', 'distribution', 'metric'];
 const BUSINESS_TYPES = ['General', 'Retail', 'Kuliner', 'Fashion', 'Online Shop', 'Jasa'];
 const FIELD_ROLES = ['x', 'y', 'color', 'size', 'filter', 'label'];
 const DATA_TYPES = ['number', 'string', 'date', 'label'];
@@ -109,6 +110,13 @@ const CHART_GOAL_OPTIONS = [
     chartType: 'smart_pareto',
     category: 'comparison',
     size: 12,
+  },
+  {
+    title: 'Single Metric Progress',
+    description: 'Menampilkan persentase tunggal dalam grafis melingkar  -  cocok untuk target pencapaian.',
+    chartType: 'circular_progress',
+    category: 'metric',
+    size: 4,
   },
 ];
 

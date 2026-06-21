@@ -13,6 +13,7 @@ import type { ChartTemplate } from '../../services/api';
 import type { FieldMapping, ClientChartConfig } from '../../types/clientDashboard';
 import { processChartData, type ChartDataPoint } from '../../formulas/evaluator';
 import { formatRupiah, formatNumber } from '../../utils/formatting';
+import CircularProgress from './CircularProgress';
 
 // Chart colors palette
 const CHART_COLORS = [
@@ -89,6 +90,8 @@ export default function DynamicChart({
         return renderTreemap();
       case 'table':
         return renderTable();
+      case 'circular_progress':
+        return renderCircularProgress();
       default:
         return renderBarChart();
     }
@@ -295,6 +298,25 @@ export default function DynamicChart({
     </div>
   );
 
+  // Circular Progress
+  const renderCircularProgress = () => {
+    // Ambil nilai dari data baris pertama
+    const value = chartData.length > 0 ? (chartData[0][valueField] as number) || 0 : 0;
+    
+    return (
+      <div className="flex flex-col items-center justify-center h-full pt-4">
+        <CircularProgress 
+          value={value} 
+          size={140} 
+          color="#276749" 
+        />
+        {chartData.length > 0 && chartData[0].name && chartData[0].name !== 'Total' && (
+          <p className="mt-4 text-sm text-gray-600 font-medium">{chartData[0].name}</p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Chart Title */}
@@ -332,6 +354,7 @@ function ChartTypeIcon({ type, className }: { type: string; className?: string }
       return <LineChartIcon className={className} />;
     case 'pie':
     case 'doughnut':
+    case 'circular_progress':
       return <PieChartIcon className={className} />;
     case 'table':
       return <Table className={className} />;
