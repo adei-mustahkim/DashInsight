@@ -3135,13 +3135,13 @@ export default function UMKMInsight({
                   if (template.chart_code === 'HOURLY_SALES') chartDataToPass = mapValue(charts.hourlySales);
                   else if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = mapValue(charts.weekdaySales);
                   else if (template.chart_code === 'CATEGORY_SALES') chartDataToPass = mapValue(charts.categorySales);
-                  else if (template.chart_code === 'PROMO_CAMPAIGN') chartDataToPass = charts.promoCampaign || [];
+                  else if (template.chart_code === 'PROMO_CAMPAIGN') chartDataToPass = (charts.promoCampaign || []).map(d => ({ ...d, value: d.sales || 0, transactions: d.qty || 0 }));
                   else if (template.chart_code === 'CUSTOMER_SEGMENT') chartDataToPass = mapValue(charts.customerSegment);
                   else if (template.chart_code === 'ORDER_FULFILLMENT') chartDataToPass = mapValue(charts.orderFulfillment);
-                  else if (template.chart_code === 'COURIER_EFFICIENCY') chartDataToPass = charts.courierEfficiency || [];
+                  else if (template.chart_code === 'COURIER_EFFICIENCY') chartDataToPass = (charts.courierEfficiency || []).map(d => ({ ...d, value: d.sales || 0, avgTime: d.fee || 0, orders: d.sales || 0 }));
                   else if (template.chart_code === 'TABLE_REVENUE') chartDataToPass = mapValue(charts.tableRevenue);
-                  else if (template.chart_code === 'PROMO_ROI') chartDataToPass = charts.promoRoi || [];
-                  else if (template.chart_code === 'VARIANT_PROFITABILITY') chartDataToPass = charts.variantProfitability || [];
+                  else if (template.chart_code === 'PROMO_ROI') chartDataToPass = (charts.promoRoi || []).map(d => ({ ...d, value: d.sales || 0, roi: d.sales || 0, margin: d.discount || 0 }));
+                  else if (template.chart_code === 'VARIANT_PROFITABILITY') chartDataToPass = (charts.variantProfitability || []).map(d => ({ ...d, value: d.sales || 0, revenue: d.sales || 0 }));
 
                   if (template.chart_type === 'crosstab') {
                     const crossData = template.chart_code === 'PAYMENT_PROVIDER' ? (charts.paymentProviderShare || []) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (charts.customerLoyaltyMix || []) : []);
