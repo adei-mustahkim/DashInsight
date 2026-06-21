@@ -55,8 +55,8 @@ export default function LoginPage() {
           
           <div className="mb-8 flex flex-col items-center text-center">
             <img src={logoImg} alt="DashInsight Logo" className="h-16 w-auto mb-6 object-contain drop-shadow-sm" />
-            <h2 className="text-2xl font-bold tracking-tight text-[#173F2E]">Selamat Datang</h2>
-            <p className="mt-1.5 text-sm text-[#51645B]">Masuk untuk mengelola sistem analitik UMKM</p>
+            <h2 className="text-2xl font-bold tracking-tight text-[#173F2E]">Selamat Datang di DashInsight</h2>
+            <p className="mt-1.5 text-sm text-[#51645B]">Satu platform pintar untuk kelola seluruh data analitik UMKM Anda</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
