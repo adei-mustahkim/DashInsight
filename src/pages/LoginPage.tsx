@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-[#F4F9F6] p-4 overflow-hidden">
-      
+
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-[#276749]/10 to-transparent blur-[120px]" />
@@ -39,11 +39,11 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-[440px]">
-        
+
         {/* Tombol Kembali */}
         <div className="mb-6 flex justify-center sm:justify-start">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="inline-flex items-center gap-2 rounded-full bg-white/60 backdrop-blur-md px-4 py-2 text-sm font-semibold text-[#30463C] shadow-sm border border-white/40 transition-all hover:bg-white hover:shadow-md hover:-translate-y-0.5"
           >
             <ArrowLeft className="h-4 w-4" /> Kembali ke Beranda
@@ -52,11 +52,11 @@ export default function LoginPage() {
 
         {/* Card Login Utama */}
         <div className="rounded-[2rem] bg-white/80 backdrop-blur-xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-white">
-          
+
           <div className="mb-8 flex flex-col items-center text-center">
             <img src={logoImg} alt="DashInsight Logo" className="h-16 w-auto mb-6 object-contain drop-shadow-sm" />
             <h2 className="text-2xl font-bold tracking-tight text-[#173F2E]">Selamat Datang di DashInsight</h2>
-            <p className="mt-1.5 text-sm text-[#51645B]">Satu platform pintar untuk kelola seluruh data analitik UMKM Anda</p>
+            <p className="mt-1.5 text-sm text-[#51645B]">Satu platform pintar untuk kelola seluruh data anda</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -87,9 +87,9 @@ export default function LoginPage() {
                   className="w-full rounded-xl border-2 border-[#E8EFEA] bg-white/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-[#173F2E] placeholder-[#A4B5AC] outline-none transition-all focus:border-[#276749] focus:bg-white"
                   autoComplete="current-password"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A4B5AC] hover:text-[#173F2E] transition-colors"
                   aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
                 >
