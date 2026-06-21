@@ -1,0 +1,644 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Styling dasar biar tampilan aplikasi lebih mulus */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #F8FAF9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.landing-page {
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.landing-page h1,
+.landing-page h2,
+.landing-page h3 {
+  text-wrap: balance;
+}
+
+.landing-nav-link {
+  position: relative;
+  padding-block: 0.75rem;
+  transition: color 180ms ease;
+}
+
+.landing-nav-link::after {
+  position: absolute;
+  right: 0;
+  bottom: 0.35rem;
+  left: 0;
+  height: 2px;
+  content: "";
+  background: #276749;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-nav-link:hover,
+.landing-nav-link:focus-visible {
+  color: #173f2e;
+}
+
+.landing-nav-link:hover::after,
+.landing-nav-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.landing-button-primary,
+.landing-button-secondary,
+.landing-button-light,
+.landing-button-dark {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.landing-button-primary {
+  background: #276749;
+  color: #fff;
+}
+
+.landing-button-primary:hover { background: #1d5138; }
+.landing-button-primary:active { transform: translateY(1px); }
+
+.landing-button-secondary {
+  border: 1px solid #b9ccc1;
+  background: #fff;
+  color: #173f2e;
+}
+
+.landing-button-secondary:hover {
+  border-color: #276749;
+  background: #f1f7f3;
+}
+
+.landing-button-large {
+  min-height: 3.25rem;
+  padding-inline: 1.4rem;
+  font-size: 0.9375rem;
+}
+
+.landing-button-light {
+  background: #fff;
+  color: #173f2e;
+}
+
+.landing-button-light:hover { background: #e7f3ec; }
+
+.landing-button-dark {
+  border: 1px solid rgb(255 255 255 / 35%);
+  background: #173f2e;
+  color: #fff;
+}
+
+.landing-button-dark:hover { background: #102d21; }
+
+.landing-product-frame {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgb(19 51 36 / 18%);
+  transform: perspective(1400px) rotateY(-2deg) rotateX(1deg);
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-product-frame:hover {
+  transform: perspective(1400px) rotateY(0) rotateX(0) translateY(-3px);
+}
+
+.landing-demo-frame {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgb(19 51 36 / 14%);
+}
+
+.landing-input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid #bdcec4;
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.65rem 0.8rem;
+  color: #173f2e;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.landing-input::placeholder { color: #65786e; }
+
+.landing-input:focus {
+  border-color: #276749;
+  box-shadow: 0 0 0 3px rgb(39 103 73 / 14%);
+}
+
+.landing-page :focus-visible {
+  outline: 3px solid #58a77d;
+  outline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+  .landing-product-frame {
+    transform: none;
+  }
+
+  .landing-demo-frame {
+    height: 620px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.dashboard-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.dashboard-chart-card {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .dashboard-chart-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .dashboard-chart-card {
+    grid-column: span var(--chart-span, 12);
+  }
+}
+
+/* ==========================================
+   PRINT STYLES - Export PDF matching dashboard
+   ========================================== */
+
+@media print {
+  /* Reset untuk print */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* Body print styling - FORCE color preservation */
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    font-size: 11px !important;
+  }
+
+  /* Target ALL elements with colors - FORCE everything */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* ===========================================
+     BRAND GRADIENT HEADER - Emerald Green Theme
+     =========================================== */
+
+  /* Gradient header background - #276749 to #1f533a */
+  .bg-gradient-to-r, [class*="bg-gradient"] {
+    background: linear-gradient(to right, #276749, #1f533a) !important;
+  }
+
+  /* White overlay backgrounds */
+  .bg-white\/20, .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* White text on gradient header */
+  .text-white, .text-white\/80, .text-white\/70 {
+    color: white !important;
+  }
+
+  /* ===========================================
+     BRAND COLORS - Emerald Green #276749
+     =========================================== */
+
+  /* Brand background colors */
+  .bg-\[\#276749\], .bg-emerald-700, .bg-emerald-600, .bg-emerald-500, .bg-emerald-800 {
+    background-color: #276749 !important;
+  }
+
+  /* Brand text colors */
+  .text-\[\#276749\], .text-emerald-700, .text-emerald-600, .text-emerald-800 {
+    color: #276749 !important;
+  }
+
+  /* Darker emerald for hover states */
+  .hover\:bg-\[\#1f533a\]:hover, .bg-\[\#1f533a\] {
+    background-color: #1f533a !important;
+  }
+
+  /* ===========================================
+     PROGRESS BARS & INDICATORS
+     =========================================== */
+
+  /* Progress bar fill - brand green */
+  [style*="background-color: rgb(39, 103, 73)"],
+  [style*="background-color:#276749"],
+  [style*="width:"][style*="border-radius"] {
+    background-color: #276749 !important;
+  }
+
+  /* Inline style progress bars */
+  div[style*="width"][style*="%"] {
+    background-color: #276749 !important;
+  }
+
+  /* Progress bar containers */
+  .bg-emerald-600, .bg-emerald-700, .bg-emerald-500 {
+    background-color: #276749 !important;
+  }
+
+  /* Progress container background */
+  .bg-gray-100, .bg-slate-100 {
+    background-color: #f3f4f6 !important;
+  }
+
+  /* ===========================================
+     TEXT & TYPOGRAPHY COLORS
+     =========================================== */
+
+  .text-gray-900, .text-gray-950 { color: #111827 !important; }
+  .text-gray-800 { color: #1f2937 !important; }
+  .text-gray-700 { color: #374151 !important; }
+  .text-gray-600 { color: #4b5563 !important; }
+  .text-gray-500 { color: #6b7280 !important; }
+  .text-gray-400 { color: #9ca3af !important; }
+  .text-white { color: white !important; }
+
+  /* ===========================================
+     BLUE ACCENT COLORS
+     =========================================== */
+  .text-blue-600, .text-blue-700, .text-blue-500 {
+    color: #1d4ed8 !important;
+  }
+  .bg-blue-600, .bg-blue-700, .bg-blue-500 {
+    background-color: #1d4ed8 !important;
+  }
+  .bg-blue-50 { background-color: #eff6ff !important; }
+
+  /* ===========================================
+     AMBER/WARNING COLORS
+     =========================================== */
+  .text-amber-600, .text-amber-700, .text-amber-500 {
+    color: #b45309 !important;
+  }
+  .bg-amber-50, .bg-amber-100 {
+    background-color: #fffbeb !important;
+  }
+
+  /* ===========================================
+     EMERALD/SUCCESS COLORS
+     =========================================== */
+  .text-emerald-600, .text-emerald-700, .text-emerald-500 {
+    color: #276749 !important;
+  }
+  .bg-emerald-50, .bg-emerald-100 {
+    background-color: #ecfdf5 !important;
+  }
+
+  /* ===========================================
+     CARD & CONTAINER BACKGROUNDS
+     =========================================== */
+  .bg-white { background-color: white !important; }
+  .bg-gray-50 { background-color: #f9fafb !important; }
+  .bg-gray-100 { background-color: #f3f4f6 !important; }
+
+  /* Sidebar/Aside */
+  .bg-slate-100 { background-color: #f1f5f9 !important; }
+
+  /* ===========================================
+     BORDERS & DIVIDERS
+     =========================================== */
+  .border-gray-200 { border-color: #e5e7eb !important; }
+  .border-gray-100 { border-color: #f3f4f6 !important; }
+  .border-white { border-color: white !important; }
+  .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+
+  /* Dividers */
+  .divide-gray-100 > * { border-color: #f3f4f6 !important; }
+  .divide-gray-200 > * { border-color: #e5e7eb !important; }
+
+  /* ===========================================
+     CARD STYLING
+     =========================================== */
+  .rounded-xl, .rounded-lg, .rounded-md {
+    border-radius: 0.5rem !important;
+    box-shadow: none !important;
+  }
+
+  /* KPI Card borders */
+  .border { border-width: 1px !important; }
+
+  /* ===========================================
+     HIDE ELEMENTS FOR PRINT
+     =========================================== */
+  .print\:hidden, [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  /* Report specific */
+  .print\:border-0 { border: none !important; }
+  .print\:p-0 { padding: 0 !important; }
+  .print\:shadow-none { box-shadow: none !important; }
+  .print\:rounded-none { border-radius: 0 !important; }
+
+  /* ===========================================
+     LAYOUT GRIDS
+     =========================================== */
+
+  /* Main page container */
+  .min-h-screen { min-height: auto !important; }
+
+  /* Dashboard grid */
+  .dashboard-chart-grid {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Chart cards span */
+  .dashboard-chart-card {
+    grid-column: span var(--chart-span, 12) !important;
+  }
+
+  /* KPI Cards - 4 columns on print */
+  .xl\:grid-cols-4, .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* 2-column layouts */
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Section grids */
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* ===========================================
+     PAGE BREAKS
+     =========================================== */
+  section, article, header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ===========================================
+     TYPOGRAPHY SIZES
+     =========================================== */
+  .text-xs { font-size: 0.65rem !important; line-height: 1.4 !important; }
+  .text-sm { font-size: 0.75rem !important; line-height: 1.4 !important; }
+  .text-base { font-size: 0.85rem !important; line-height: 1.4 !important; }
+  .text-lg { font-size: 0.95rem !important; line-height: 1.4 !important; }
+  .text-xl { font-size: 1.1rem !important; line-height: 1.3 !important; }
+  .text-2xl { font-size: 1.25rem !important; line-height: 1.3 !important; }
+  .text-3xl { font-size: 1.4rem !important; line-height: 1.2 !important; }
+  .text-4xl { font-size: 1.6rem !important; line-height: 1.2 !important; }
+
+  /* Header title in print */
+  h1 { font-size: 1.5rem !important; font-weight: 700 !important; }
+  h2 { font-size: 1.1rem !important; font-weight: 600 !important; }
+  h3 { font-size: 0.9rem !important; font-weight: 600 !important; }
+
+  /* ===========================================
+     CHART CONTAINERS
+     =========================================== */
+  .recharts-wrapper, .recharts-surface {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ===========================================
+     PADDING & MARGINS
+     =========================================== */
+  .p-3, .p-4, .p-5 { padding: 0.75rem !important; }
+  .px-4, .px-5, .px-6 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+  .py-3, .py-4, .py-5 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+  .gap-3, .gap-4 { gap: 0.5rem !important; }
+
+  /* ===========================================
+     ROUNDED BADGES ON HEADER
+     =========================================== */
+  .rounded-full {
+    border-radius: 9999px !important;
+  }
+
+  /* ===========================================
+     CUSTOM BRAND COLORS - Light variants
+     =========================================== */
+
+  /* Light green backgrounds used in dashboard */
+  .bg-\[\#F8FCFA\], [style*="background-color: rgb(248, 252, 250)"] {
+    background-color: #F8FCFA !important;
+  }
+  .bg-\[\#F1FAF5\], [style*="background-color: rgb(241, 250, 245)"] {
+    background-color: #F1FAF5 !important;
+  }
+  .bg-\[\#DCF4E7\], [style*="background-color: rgb(220, 244, 231)"] {
+    background-color: #DCF4E7 !important;
+  }
+
+  /* Light green borders */
+  .border-\[\#DCF4E7\], [style*="border-color: rgb(220, 244, 231)"] {
+    border-color: #DCF4E7 !important;
+  }
+
+  /* Light green text */
+  .text-\[\#276749\], .text-\[\#059669\], .text-\[\#047857\] {
+    color: #276749 !important;
+  }
+
+  /* Slate tones for KPI cards */
+  .text-slate-700, .text-slate-600, .text-slate-500 { color: #475569 !important; }
+  .bg-slate-100, .bg-slate-200 { background-color: #f1f5f9 !important; }
+
+  /* Violet tones */
+  .text-violet-600, .text-violet-700 { color: #7c3aed !important; }
+  .bg-violet-100 { background-color: #ede9fe !important; }
+
+  /* Cyan tones */
+  .text-cyan-600, .text-cyan-700 { color: #0891b2 !important; }
+  .bg-cyan-100 { background-color: #cffafe !important; }
+
+  /* Rose/Red tones for Diskon */
+  .text-rose-600, .text-rose-700 { color: #e11d48 !important; }
+  .bg-rose-100 { background-color: #ffe4e6 !important; }
+
+  /* Orange tones */
+  .text-orange-600, .text-orange-700 { color: #ea580c !important; }
+  .bg-orange-100 { background-color: #ffedd5 !important; }
+
+  /* ===========================================
+     EXECUTIVE SUMMARY SECTION LAYOUT
+     =========================================== */
+
+  /* Grid for executive summary cards */
+  .md\:grid-cols-5 {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Executive summary section */
+  .bg-white.border.border-gray-200 {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Focus/keywords badges */
+  .rounded-md.border.border-\[\#DCF4E7\].bg-\[\#F8FCFA\] {
+    background-color: #F8FCFA !important;
+    border-color: #DCF4E7 !important;
+  }
+
+  /* Finding cards */
+  .rounded-md.border.border-\[\#DCF4E7\].bg-\[\#F8FCFA\] {
+    background-color: #F8FCFA !important;
+    border-color: #DCF4E7 !important;
+  }
+
+  /* ===========================================
+     KPI CARDS SECTION
+     =========================================== */
+
+  /* KPI grid - responsive to 4 columns on print */
+  .grid.grid-cols-2.md\:grid-cols-3.xl\:grid-cols-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Individual KPI card styling */
+  .rounded-xl.border.border-gray-200.p-4, .rounded-xl.border.border-gray-200.p-3 {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 0.75rem !important;
+  }
+
+  /* KPI card inner elements */
+  .rounded-lg, .rounded-xl {
+    border-radius: 0.5rem !important;
+  }
+
+  /* Growth indicators */
+  .text-emerald-600, .text-green-600 {
+    color: #059669 !important;
+  }
+  .text-rose-600, .text-red-600 {
+    color: #dc2626 !important;
+  }
+
+  /* ===========================================
+     FLEX LAYOUT FOR PORTFOLIO & SEGMENTASI
+     =========================================== */
+
+  /* Flex container for side-by-side layout */
+  .flex.flex-col.lg\:flex-row {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  /* Flex items */
+  .flex-1 {
+    flex: 1 !important;
+  }
+
+  /* Min width for cards */
+  .min-w-0 {
+    min-width: 0 !important;
+  }
+
+  /* Gap between cards */
+  .gap-3 {
+    gap: 0.75rem !important;
+  }
+
+  /* ===========================================
+     CHART CARDS
+     =========================================== */
+
+  .dashboard-chart-card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.5rem !important;
+    padding: 0.75rem !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Chart container height for print */
+  .recharts-responsive-container {
+    height: 250px !important;
+  }
+
+  /* ===========================================
+     SHADOWS REMOVED FOR PRINT
+     =========================================== */
+  .shadow-lg, .shadow-md, .shadow-sm, .shadow {
+    box-shadow: none !important;
+  }
+
+  /* ===========================================
+     LINE CLAMPS FOR TEXT
+     =========================================== */
+  .line-clamp-2 {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+  }
+
+  /* ===========================================
+     CUSTOM SHADES
+     =========================================== */
+  .text-\[\#667085\], .text-\[\#4B5563\] {
+    color: #667085 !important;
+  }
+
+  /* ===========================================
+     REMOVE TRANSITIONS FOR PRINT
+     =========================================== */
+  .transition-all, .transition-colors, .transition {
+    transition: none !important;
+  }
+}

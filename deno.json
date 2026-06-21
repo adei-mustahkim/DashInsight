@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env deno-server/main.ts",
+    "check": "deno check deno-server/main.ts"
+  },
+  "fmt": {
+    "lineWidth": 100
+  }
+}

@@ -1,0 +1,196 @@
+// DashInsight - Prisma Schema (PostgreSQL / Neon)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === Users ===
+model users {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password_hash String
+  role          String    @default("client") // admin | client
+  status        String    @default("active") // active | inactive | suspended
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  client          clients?
+  audit_logs      audit_logs[]
+}
+
+// === Clients ===
+model clients {
+  id                  String    @id @default(uuid())
+  user_id             String    @unique
+  business_name       String
+  business_type       String
+  owner_name          String
+  phone               String?
+  address             String?
+  status              String    @default("active") // active | expired | suspended | inactive
+  active_until        DateTime?
+  created_by_admin_id String?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  user              users                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  subscriptions     client_subscriptions[]
+  dataset_metadata  dataset_metadata[]
+}
+
+// === Client Subscriptions ===
+model client_subscriptions {
+  id                  String   @id @default(uuid())
+  client_id           String
+  start_date          DateTime
+  end_date            DateTime
+  duration_days       Int
+  status              String   @default("active") // active | expired | cancelled
+  notes               String?
+  created_by_admin_id String?
+  created_at          DateTime @default(now())
+
+  client clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+}
+
+// === Chart Templates ===
+model chart_templates {
+  id              String   @id @default(uuid())
+  chart_code      String   @unique
+  chart_name      String
+  description     String?
+  chart_type      String   // bar | line | pie | doughnut | scatter | table | treemap
+  chart_category  String?  // composition | comparison | distribution | trend
+  business_type   String?  // Retail | Kuliner | Fashion | Online Shop | Jasa | General
+  default_size    Int      @default(6)
+  default_order   Int      @default(100)
+  status          String   @default("active") // active | inactive | archived
+  version         Int      @default(1)
+  created_by      String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  chart_fields            chart_fields[]
+  chart_template_formulas chart_template_formulas[]
+}
+
+// === Chart Fields ===
+model chart_fields {
+  id                  String   @id @default(uuid())
+  chart_template_id   String
+  field_role          String   // x | y | color | size | filter | label
+  field_label         String
+  required_data_type  String?  // number | string | date | label
+  is_required         Boolean  @default(false)
+  allow_multiple      Boolean  @default(false)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  chart_template chart_templates @relation(fields: [chart_template_id], references: [id], onDelete: Cascade)
+}
+
+// === Formula Templates ===
+model formula_templates {
+  id              String   @id @default(uuid())
+  formula_code    String   @unique
+  formula_name   String
+  description     String?
+  category        String?  // kpi | margin | growth | ratio | custom
+  output_type     String   @default("number") // number | currency | percent | text
+  formula_type   String   // aggregation | derived | ratio | comparison | ranking
+  formula_json   Json     // JSON rule - NOT raw JavaScript
+  status         String   @default("draft") // draft | active | inactive | archived
+  version        Int      @default(1)
+  created_by     String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  chart_template_formulas chart_template_formulas[]
+  kpi_templates           kpi_templates[]
+}
+
+// === KPI Templates ===
+model kpi_templates {
+  id                  String   @id @default(uuid())
+  kpi_code            String   @unique
+  kpi_name            String
+  description         String?
+  formula_template_id String
+  display_format      String   @default("number") // number | currency | percent | ratio
+  icon                 String   @default("Activity")
+  tone                 String   @default("emerald")
+  default_order        Int      @default(100)
+  status               String   @default("active") // active | inactive | archived
+  created_by           String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  formula_template formula_templates @relation(fields: [formula_template_id], references: [id], onDelete: Restrict)
+}
+
+// === Chart-Formula Junction ===
+model chart_template_formulas {
+  id                  String   @id @default(uuid())
+  chart_template_id   String
+  formula_template_id String
+  formula_role        String   // primary | secondary | derived
+  is_required         Boolean  @default(false)
+  sort_order          Int      @default(0)
+  created_at          DateTime @default(now())
+
+  chart_template    chart_templates    @relation(fields: [chart_template_id], references: [id], onDelete: Cascade)
+  formula_template  formula_templates  @relation(fields: [formula_template_id], references: [id], onDelete: Cascade)
+
+  @@unique([chart_template_id, formula_template_id])
+}
+
+// === Field Dictionary ===
+model field_dictionary {
+  id                  String   @id @default(uuid())
+  field_key           String   @unique
+  field_label         String
+  data_type           String   // number | string | date | label | time
+  description         String?
+  is_required_global  Boolean  @default(false)
+  synonyms_json       Json?    // ["tanggal", "tgl", "order date"]
+  status              String   @default("active") // active | inactive
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+}
+
+// === Dataset Metadata ===
+model dataset_metadata {
+  id                  String   @id @default(uuid())
+  client_id           String
+  workspace_local_id  String?
+  dataset_name        String
+  file_name           String?
+  row_count           Int?
+  column_count        Int?
+  business_type       String?
+  storage_type        String   @default("local") // local | cloud
+  last_opened_at     DateTime?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  client clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+}
+
+// === Audit Logs ===
+model audit_logs {
+  id              String   @id @default(uuid())
+  user_id         String?
+  action          String
+  description     String?
+  metadata_json   Json?
+  created_at      DateTime @default(now())
+
+  user users? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+}
