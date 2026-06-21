@@ -295,7 +295,7 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
         <div className="relative flex items-center justify-center w-48 h-48">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" strokeWidth="8" />
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#22c55e" strokeWidth="8" strokeDasharray={`${percentage * 2.827} 282.7`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+            <circle cx="50" cy="50" r="45" fill="none" stroke={COLORS[0]} strokeWidth="8" strokeDasharray={`${percentage * 2.827} 282.7`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
           </svg>
           <div className="absolute flex flex-col items-center justify-center">
             <span className="text-3xl font-bold text-gray-800">{percentage}%</span>
