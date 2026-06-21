@@ -3284,36 +3284,7 @@ export default function UMKMInsight({
                     );
                   })() : null,
 
-                  orderTypeMix: charts.orderTypeMix?.length > 0 ? (() => {
-                    const pieColors = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
-                    return (
-                      <ChartCard id="orderTypeMix" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.orderTypeMix.title} subtitle={chartCopy.orderTypeMix.subtitle}
-                        style={getAdaptiveCardStyle('orderTypeMix', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <PieChart>
-                            <Pie
-                              data={charts.orderTypeMix}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={3}
-                            >
-                              {charts.orderTypeMix.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                              ))}
-                            </Pie>
-                            <RechartsTooltip formatter={(val) => metricView === 'quantity' ? `${val} Pcs` : formatRupiah(val)} />
-                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
+
 
                   paymentProviderShare: charts.paymentProviderShare?.length > 0 ? (
                     <DynamicCrossCard
