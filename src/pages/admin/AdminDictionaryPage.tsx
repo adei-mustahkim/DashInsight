@@ -63,7 +63,8 @@ export default function AdminDictionaryPage() {
 
   const filteredFields = useMemo(() => fields.filter(field => {
     const query = search.trim().toLowerCase();
-    const matchesSearch = !query || field.field_key.toLowerCase().includes(query) || field.field_label.toLowerCase().includes(query) || field.synonyms_json.some(synonym => synonym.toLowerCase().includes(query));
+    const syns = field.synonyms_json || [];
+    const matchesSearch = !query || field.field_key.toLowerCase().includes(query) || field.field_label.toLowerCase().includes(query) || syns.some(synonym => synonym.toLowerCase().includes(query));
     const matchesStatus = !statusFilter || field.status === statusFilter;
     const matchesType = !typeFilter || field.data_type === typeFilter;
     const matchesGlobal = !globalOnly || field.is_required_global;
@@ -151,7 +152,7 @@ export default function AdminDictionaryPage() {
               <div key={field.id} className="relative grid gap-3 border-b border-gray-100 px-5 py-4 last:border-b-0 lg:grid-cols-[minmax(220px,1.5fr)_110px_minmax(200px,1.5fr)_110px_100px_130px] lg:items-center">
                 <div className="flex min-w-0 items-start gap-3"><div className="mt-0.5 rounded-lg bg-purple-50 p-2 text-purple-700"><BookOpen className="h-5 w-5" /></div><div className="min-w-0"><button onClick={() => setModal({ type: 'view', field })} className="truncate text-left text-sm font-semibold text-gray-900 hover:text-[#276749]">{field.field_label}</button><code className="mt-0.5 block truncate text-xs text-gray-500">{field.field_key}</code>{field.description && <p className="mt-1 line-clamp-1 text-xs text-gray-600">{field.description}</p>}</div></div>
                 <div><span className="rounded-md bg-blue-50 px-2 py-1 font-mono text-xs text-blue-700">{field.data_type}</span></div>
-                <div className="flex flex-wrap gap-1">{field.synonyms_json.length === 0 ? <span className="text-xs text-gray-500">Belum ada</span> : <>{field.synonyms_json.slice(0, 3).map(synonym => <span key={synonym} className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{synonym}</span>)}{field.synonyms_json.length > 3 && <span className="px-1 py-1 text-xs text-gray-500">+{field.synonyms_json.length - 3}</span>}</>}</div>
+                <div className="flex flex-wrap gap-1">{(field.synonyms_json || []).length === 0 ? <span className="text-xs text-gray-500">Belum ada</span> : <>{(field.synonyms_json || []).slice(0, 3).map(synonym => <span key={synonym} className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{synonym}</span>)}{(field.synonyms_json || []).length > 3 && <span className="px-1 py-1 text-xs text-gray-500">+{(field.synonyms_json || []).length - 3}</span>}</>}</div>
                 <div className="text-xs text-gray-700">{field.is_required_global ? <span className="inline-flex items-center gap-1"><Globe2 className="h-3.5 w-3.5 text-[#276749]" /> Wajib global</span> : 'Opsional'}</div>
                 <div><span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${STATUS_STYLE[field.status]}`}>{field.status}</span></div>
                 <div className="flex items-center gap-1">
