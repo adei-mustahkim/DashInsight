@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticate, requireAdmin } from '../middleware/auth';
+import { authenticate, requireAdmin } from '../middlewares/auth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -69,7 +69,7 @@ router.put('/', authenticate, requireAdmin, async (req, res) => {
     // Audit log
     await prisma.audit_logs.create({
       data: {
-        user_id: req.user?.id,
+        user_id: (req as any).user?.id,
         action: 'UPDATE_SYSTEM_SETTINGS',
         description: 'Admin updated system settings',
         metadata_json: updates
