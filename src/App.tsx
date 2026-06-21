@@ -3133,8 +3133,7 @@ export default function UMKMInsight({
                   
                   let chartDataToPass = processedData;
                   const mapValue = (arr) => (arr || []).map(d => ({ ...d, value: d[metricView === 'quantity' ? 'qty' : 'sales'] || d.sales || d.transactions || 0 }));
-                  if (template.chart_code === 'HOURLY_SALES') chartDataToPass = mapValue(charts.hourlySales);
-                  else if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = mapValue(charts.weekdaySales);
+                  if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = mapValue(charts.weekdaySales);
                   else if (template.chart_code === 'CATEGORY_SALES') chartDataToPass = mapValue(charts.categorySales);
                   else if (template.chart_code === 'PROMO_CAMPAIGN') chartDataToPass = (charts.promoCampaign || []).map(d => ({ ...d, value: d.sales || 0, transactions: d.qty || 0 }));
                   else if (template.chart_code === 'CUSTOMER_SEGMENT') chartDataToPass = mapValue(charts.customerSegment);
@@ -3822,7 +3821,7 @@ chartElements[id] = (
                 </div>
               ) : chartTemplates.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {chartTemplates.filter(template => (template.chart_fields || []).length === 0 || (template.chart_fields || []).some(field => Boolean(getMappedColumn(template, field)))).filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
+                  {chartTemplates.filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
                     <div key={tpl.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: tpl.chart_type === 'pie' || tpl.chart_type === 'doughnut' ? '#eff6ff' : tpl.chart_type === 'line' ? '#ecfdf5' : '#f5f3ff' }}>

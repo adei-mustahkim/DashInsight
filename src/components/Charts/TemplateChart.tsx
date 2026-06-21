@@ -95,9 +95,17 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
     const yBarField = resolveField(template, 'y_bar', rows, fieldMapping) || valueField;
     const yLineField = resolveField(template, 'y_line', rows, fieldMapping) || valueField;
     
-    const grouped = {};
+    const grouped: Record<string, any> = {};
     rows.forEach(r => {
-      const key = r[labelField] || 'Unknown';
+      let key = String(r[labelField] || 'N/A');
+      if (template.chart_code === 'HOURLY_SALES' && key !== 'N/A') {
+        const match = key.match(/(\d{1,2})[:.]/);
+        if (match) {
+           key = `${match[1].padStart(2, '0')}:00`;
+        } else if (/^\d{1,2}$/.test(key.trim())) {
+           key = `${key.trim().padStart(2, '0')}:00`;
+        }
+      }
       if (!grouped[key]) grouped[key] = { name: key, barVal: 0, lineVal: 0 };
       grouped[key].barVal += Number(r[yBarField]) || 0;
       grouped[key].lineVal += Number(r[yLineField]) || 0;
