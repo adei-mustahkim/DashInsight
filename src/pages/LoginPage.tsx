@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../stores/useAuth';
-import { Lock, Mail, Eye, EyeOff, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 export default function LoginPage() {
@@ -54,10 +54,7 @@ export default function LoginPage() {
         <div className="rounded-[2rem] bg-white/80 backdrop-blur-xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-white">
           
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#276749] to-[#1C4E36] text-white shadow-lg">
-              <ShieldCheck className="h-7 w-7" />
-            </div>
-            <img src={logoImg} alt="DashInsight Logo" className="h-8 w-auto mb-4 object-contain" />
+            <img src={logoImg} alt="DashInsight Logo" className="h-16 w-auto mb-6 object-contain drop-shadow-sm" />
             <h2 className="text-2xl font-bold tracking-tight text-[#173F2E]">Selamat Datang</h2>
             <p className="mt-1.5 text-sm text-[#51645B]">Masuk untuk mengelola sistem analitik UMKM</p>
           </div>
