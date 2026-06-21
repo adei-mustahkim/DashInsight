@@ -3172,7 +3172,7 @@ export default function UMKMInsight({
                         title={template.chart_name}
                         subtitle={template.description}
                         action={<ViewToggle id={id} views={views} current={current} onSelect={handleChartViewChange} />}
-                        onSettings={() => setMappingTemplate(template)}
+                        onSettings={() => preserveDashboardScroll(() => setMappingTemplate(template))}
                         onHide={handleHideChart}
                         onResize={handleResizeChart}
                         preferredSize={template.default_size || 6}
@@ -3195,7 +3195,7 @@ chartElements[id] = (
                       title={template.chart_name}
                       subtitle={template.description}
                       action={<ViewToggle id={id} views={views} current={current} onSelect={handleChartViewChange} />}
-                      onSettings={() => setMappingTemplate(template)}
+                      onSettings={() => preserveDashboardScroll(() => setMappingTemplate(template))}
                       onHide={handleHideChart}
                       onResize={handleResizeChart}
                       preferredSize={template.default_size || 6}
@@ -3821,7 +3821,11 @@ chartElements[id] = (
                 </div>
               ) : chartTemplates.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {chartTemplates.filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
+                  {chartTemplates.filter(template => {
+                    const isOnDashboard = chartOrder.includes(`library:${template.id}`) || chartOrder.includes(template.chart_code);
+                    const hasMappedFields = (template.chart_fields || []).length === 0 || (template.chart_fields || []).some(field => Boolean(getMappedColumn(template, field)));
+                    return isOnDashboard || hasMappedFields;
+                  }).filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
                     <div key={tpl.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: tpl.chart_type === 'pie' || tpl.chart_type === 'doughnut' ? '#eff6ff' : tpl.chart_type === 'line' ? '#ecfdf5' : '#f5f3ff' }}>
@@ -3848,34 +3852,6 @@ chartElements[id] = (
                   <BarChart3 className="mx-auto w-12 h-12 text-gray-300 mb-4" />
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Belum ada chart template</h3>
                   <p className="text-sm text-gray-500">Hubungi admin untuk membuat chart template baru.</p>
-                </div>
-              )}
-
-              {mappingTemplate && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="client-chart-mapping-title">
-                  <button className="fixed inset-0 bg-black/50" onClick={() => setMappingTemplate(null)} aria-label="Tutup" />
-                  <div className="relative w-full max-w-xl rounded-xl bg-white shadow-xl">
-                    <div className="flex items-start justify-between border-b border-gray-200 px-5 py-4">
-                      <div><h2 id="client-chart-mapping-title" className="font-bold text-gray-900">Atur Kolom Chart</h2><p className="mt-1 text-sm text-gray-600">{mappingTemplate.chart_name}</p></div>
-                      <button onClick={() => setMappingTemplate(null)} className="rounded-md p-1 text-gray-500 hover:bg-gray-100" aria-label="Tutup"><X className="h-5 w-5" /></button>
-                    </div>
-                    <div className="max-h-[60vh] space-y-4 overflow-y-auto p-5">
-                      {(mappingTemplate.chart_fields || []).map(field => (
-                        <label key={field.id} className="block text-sm font-medium text-gray-700">
-                          {field.field_label} <span className="text-xs font-normal text-gray-500">({field.field_role === 'target' ? 'angka target' : field.field_role}{field.is_required ? ', wajib' : ''})</span>
-                          {field.field_role === 'target' ? (
-                            <input type="text" placeholder="Contoh: 150000000" value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
-                          ) : (
-                            <select value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
-                              <option value="">Tidak digunakan</option>
-                              {availableDataColumns.map(column => <option key={column} value={column}>{column}</option>)}
-                            </select>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4"><p className="text-xs text-gray-500">Tersimpan lokal, tidak dikirim ke database.</p><button onClick={() => setMappingTemplate(null)} className="rounded-md bg-[#276749] px-4 py-2 text-sm font-semibold text-white">Selesai</button></div>
-                  </div>
                 </div>
               )}
             </div>
@@ -4070,6 +4046,35 @@ chartElements[id] = (
               <p className="text-gray-500 max-w-md text-base leading-relaxed">Menu ini masih dalam tahap pengembangan. Kami sedang menyiapkan inovasi selanjutnya untuk Anda!</p>
             </div>
           )}
+
+          {mappingTemplate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="client-chart-mapping-title">
+              <button className="fixed inset-0 bg-black/50" onClick={() => setMappingTemplate(null)} aria-label="Tutup" />
+              <div className="relative w-full max-w-xl rounded-xl bg-white shadow-xl">
+                <div className="flex items-start justify-between border-b border-gray-200 px-5 py-4">
+                  <div><h2 id="client-chart-mapping-title" className="font-bold text-gray-900">Atur Kolom Chart</h2><p className="mt-1 text-sm text-gray-600">{mappingTemplate.chart_name}</p></div>
+                  <button onClick={() => setMappingTemplate(null)} className="rounded-md p-1 text-gray-500 hover:bg-gray-100" aria-label="Tutup"><X className="h-5 w-5" /></button>
+                </div>
+                <div className="max-h-[60vh] space-y-4 overflow-y-auto p-5">
+                  {(mappingTemplate.chart_fields || []).map(field => (
+                    <label key={field.id} className="block text-sm font-medium text-gray-700">
+                      {field.field_label} <span className="text-xs font-normal text-gray-500">({field.field_role === 'target' ? 'angka target' : field.field_role}{field.is_required ? ', wajib' : ''})</span>
+                      {field.field_role === 'target' ? (
+                        <input type="text" placeholder="Contoh: 150000000" value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                      ) : (
+                        <select value={getMappedColumn(mappingTemplate, field)} onChange={event => updateLocalChartMapping(mappingTemplate.id, field.id, event.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]">
+                          <option value="">Tidak digunakan</option>
+                          {availableDataColumns.map(column => <option key={column} value={column}>{column}</option>)}
+                        </select>
+                      )}
+                    </label>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4"><p className="text-xs text-gray-500">Tersimpan lokal, tidak dikirim ke database.</p><button onClick={() => setMappingTemplate(null)} className="rounded-md bg-[#276749] px-4 py-2 text-sm font-semibold text-white">Selesai</button></div>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>
