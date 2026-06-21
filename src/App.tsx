@@ -2646,54 +2646,12 @@ export default function UMKMInsight({
                   staffSales: dimensions.staff ? <DynamicBreakdownCard id="staffSales" onHide={handleHideChart} viewType={chartViews.staffSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.staffSales.title} subtitle={chartCopy.staffSales.subtitle} items={charts.staffSales} color={ANALYST_COLORS.primary} label="staff" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} /> : null,
                   brandSales: dimensions.brand ? <DynamicBreakdownCard id="brandSales" onHide={handleHideChart} viewType={chartViews.brandSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.brandSales.title} subtitle={chartCopy.brandSales.subtitle} items={charts.brandSales} color={ANALYST_COLORS.primary} label="brand" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} /> : null,
                   supplierSales: dimensions.supplier ? <DynamicBreakdownCard id="supplierSales" onHide={handleHideChart} viewType={chartViews.supplierSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.supplierSales.title} subtitle={chartCopy.supplierSales.subtitle} items={charts.supplierSales} color={ANALYST_COLORS.primary} label="supplier" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} /> : null,
-                  categorySales: <DynamicBreakdownCard id="categorySales" onHide={handleHideChart} viewType={chartViews.categorySales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.categorySales.title} subtitle={chartCopy.categorySales.subtitle} items={dimensions.category ? charts.categorySales : []} color={ANALYST_COLORS.primary} label="kategori" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} />,
+
                   channelSales: <DynamicBreakdownCard id="channelSales" onHide={handleHideChart} viewType={chartViews.channelSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.channelSales.title} subtitle={chartCopy.channelSales.subtitle} items={dimensions.channel ? charts.channelSales : []} color={ANALYST_COLORS.primary} label="channel" valueKey="value" composition />,
                   branchSales: <DynamicBreakdownCard id="branchSales" onHide={handleHideChart} viewType={chartViews.branchSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.branchSales.title} subtitle={chartCopy.branchSales.subtitle} items={dimensions.branch ? charts.branchSales : []} color={ANALYST_COLORS.primary} label="cabang" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} />,
                   paymentMethods: <DynamicBreakdownCard id="paymentMethods" onHide={handleHideChart} viewType={chartViews.paymentMethods || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.paymentMethods.title} subtitle={chartCopy.paymentMethods.subtitle} items={dimensions.paymentMethod ? charts.paymentMethods : []} color={ANALYST_COLORS.primary} label="metode" valueKey="value" composition />,
                   serviceDuration: dimensions.duration ? <DynamicBreakdownCard id="serviceDuration" onHide={handleHideChart} viewType={chartViews.serviceDuration || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.serviceDuration.title} subtitle={chartCopy.serviceDuration.subtitle} items={charts.serviceDuration} color={ANALYST_COLORS.primary} label="layanan" preferred="standard" /> : null,
-                  weekdaySales: (dimensions.date && charts.weekdaySales.length > 0) ? (() => {
-                    const cv = chartViews['weekdaySales'] || 'radar';
-                    const VIEWS = [
-                      { key: 'radar', Icon: RadarIcon, label: 'Radar', tip: 'Radar  -  pola hari dalam sepekan' },
-                      { key: 'bar', Icon: BarChart3, label: 'Bar', tip: 'Bar vertikal  -  ranking hari' },
-                      { key: 'line', Icon: Activity, label: 'Line', tip: 'Line  -  tren omzet per hari' },
-                    ];
-                    return (
-                      <ChartCard id="weekdaySales" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={4}
-                        title={chartCopy.weekdaySales.title} subtitle={chartCopy.weekdaySales.subtitle}
-                        style={getAdaptiveCardStyle('weekdaySales', 4)}
-                        action={<ViewToggle id="weekdaySales" views={VIEWS} current={cv} onSelect={handleChartViewChange} />}
-                      >
-                        <ResponsiveContainer width="100%" height={250}>
-                          {cv === 'radar' ? (
-                            <RadarChart cx="50%" cy="50%" outerRadius={82} data={charts.weekdaySales}>
-                              <PolarGrid stroke="#E5E7EB" />
-                              <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} />
-                              <PolarRadiusAxis tick={false} axisLine={false} />
-                              <Radar name="Omzet" dataKey="sales" stroke={ANALYST_COLORS.primary} fill={ANALYST_COLORS.primary} fillOpacity={0.35} />
-                              <RechartsTooltip content={<CustomTooltip />} />
-                            </RadarChart>
-                          ) : cv === 'line' ? (
-                            <LineChart data={charts.weekdaySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
-                              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                              <YAxis tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} width={56} axisLine={false} tickLine={false} />
-                              <RechartsTooltip content={<CustomTooltip />} />
-                              <Line type="monotone" dataKey="sales" name="Omzet" stroke={ANALYST_COLORS.primary} strokeWidth={2} dot={{ r: 4, fill: ANALYST_COLORS.primary }} />
-                            </LineChart>
-                          ) : (
-                            <BarChart data={charts.weekdaySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
-                              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                              <YAxis tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} width={56} axisLine={false} tickLine={false} />
-                              <RechartsTooltip content={<CustomTooltip />} />
-                              <Bar dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                          )}
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
+
                   citySales: (dimensions.city && charts.citySales?.length > 0) ? (() => {
                     const cv = chartViews['citySales'] || 'auto';
                     const hasMappedCities = charts.citySales.some(item => getCityCoords(item.name));
@@ -2749,62 +2707,7 @@ export default function UMKMInsight({
                       />
                     );
                   })() : <DynamicBreakdownCard id="citySales" onHide={handleHideChart} viewType={chartViews.citySales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.citySales.title} subtitle={chartCopy.citySales.subtitle} items={[]} color={ANALYST_COLORS.primary} label="kota" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} />,
-                  hourlySales: (dimensions.time && charts.hourlySales.length > 0) ? (() => {
-                    const cv = chartViews['hourlySales'] || 'barline';
-                    const VIEWS = [
-                      { key: 'barline', Icon: BarChart3, label: 'Bar+Line', tip: 'Bar omzet + line transaksi' },
-                      { key: 'area', Icon: TrendingUp, label: 'Area', tip: 'Area omzet per jam' },
-                      { key: 'line', Icon: Activity, label: 'Line', tip: 'Line omzet & transaksi' },
-                    ];
-                    return (
-                      <ChartCard id="hourlySales" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={12}
-                        title={chartCopy.hourlySales.title} subtitle={chartCopy.hourlySales.subtitle}
-                        style={getAdaptiveCardStyle('hourlySales', 12)}
-                        action={<ViewToggle id="hourlySales" views={VIEWS} current={cv} onSelect={handleChartViewChange} />}
-                      >
-                        <ResponsiveContainer width="100%" height={250}>
-                          {cv === 'barline' ? (
-                            <ComposedChart data={charts.hourlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
-                              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                              <YAxis yAxisId="left" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} width={60} axisLine={false} tickLine={false} />
-                              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#667085' }} width={30} axisLine={false} tickLine={false} />
-                              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: '#F4F7F6' }} />
-                              <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
-                              <Bar yAxisId="left" dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} />
-                              <Line yAxisId="right" type="monotone" dataKey="transactions" name="Transaksi" stroke={ANALYST_COLORS.secondary} strokeWidth={2} dot={{ r: 3 }} />
-                            </ComposedChart>
-                          ) : cv === 'area' ? (
-                            <AreaChart data={charts.hourlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <defs>
-                                <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor={ANALYST_COLORS.primary} stopOpacity={0.35} />
-                                  <stop offset="95%" stopColor={ANALYST_COLORS.primary} stopOpacity={0.02} />
-                                </linearGradient>
-                              </defs>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
-                              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                              <YAxis tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} width={60} axisLine={false} tickLine={false} />
-                              <RechartsTooltip content={<CustomTooltip />} />
-                              <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
-                              <Area type="monotone" dataKey="sales" name="Omzet" stroke={ANALYST_COLORS.primary} fill="url(#hourlyGrad)" strokeWidth={2} />
-                            </AreaChart>
-                          ) : (
-                            <LineChart data={charts.hourlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
-                              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                              <YAxis yAxisId="left" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} width={60} axisLine={false} tickLine={false} />
-                              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#667085' }} width={30} axisLine={false} tickLine={false} />
-                              <RechartsTooltip content={<CustomTooltip />} />
-                              <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
-                              <Line yAxisId="left" type="monotone" dataKey="sales" name="Omzet" stroke={ANALYST_COLORS.primary} strokeWidth={2} dot={false} />
-                              <Line yAxisId="right" type="monotone" dataKey="transactions" name="Transaksi" stroke={ANALYST_COLORS.secondary} strokeWidth={2} dot={false} />
-                            </LineChart>
-                          )}
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
+
                   basketSize: (charts.basketSize.length > 0) ? (() => {
                     const cv = chartViews['basketSize'] || 'bar';
                     const VIEWS = [
@@ -3194,211 +3097,25 @@ export default function UMKMInsight({
                     );
                   })() : null,
 
-                  promoCampaign: charts.promoCampaign?.length > 0 ? (() => {
-                    const sortedPromo = [...charts.promoCampaign].sort((a, b) => b.sales - a.sales).slice(0, 10);
-                    return (
-                      <ChartCard id="promoCampaign" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.promoCampaign.title} subtitle={chartCopy.promoCampaign.subtitle}
-                        style={getAdaptiveCardStyle('promoCampaign', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <ComposedChart data={sortedPromo} margin={{ left: 10, right: 20, top: 4, bottom: 4 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8ECEF" />
-                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} />
-                            <YAxis yAxisId="left" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <RechartsTooltip formatter={(val, name) => name === 'Omzet' ? formatRupiah(val) : `${val} Trx`} />
-                            <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar yAxisId="left" dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} barSize={16} />
-                            <Line yAxisId="right" type="monotone" dataKey="transactions" name="Transaksi" stroke={ANALYST_COLORS.secondary} strokeWidth={2} dot={{ r: 4 }} />
-                          </ComposedChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
-
-                  customerSegment: charts.customerSegment?.length > 0 ? (() => {
-                    const pieColors = ['#276749', '#558B6E', '#88B09B', '#A7B8AE', '#D1DCD6', '#2F855A', '#48BB78', '#68D391'];
-                    return (
-                      <ChartCard id="customerSegment" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.customerSegment.title} subtitle={chartCopy.customerSegment.subtitle}
-                        style={getAdaptiveCardStyle('customerSegment', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <PieChart>
-                            <Pie
-                              data={charts.customerSegment}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={3}
-                            >
-                              {charts.customerSegment.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                              ))}
-                            </Pie>
-                            <RechartsTooltip formatter={(val) => metricView === 'quantity' ? `${val} Pcs` : formatRupiah(val)} />
-                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
-
-                  orderFulfillment: charts.orderFulfillment?.length > 0 ? (() => {
-                    const pieColors = ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'];
-                    return (
-                      <ChartCard id="orderFulfillment" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.orderFulfillment.title} subtitle={chartCopy.orderFulfillment.subtitle}
-                        style={getAdaptiveCardStyle('orderFulfillment', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <PieChart>
-                            <Pie
-                              data={charts.orderFulfillment}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={3}
-                            >
-                              {charts.orderFulfillment.map((entry, index) => {
-                                const statusName = String(entry.name).toLowerCase();
-                                let fill = pieColors[3];
-                                if (statusName.includes('selesai') || statusName.includes('success') || statusName.includes('paid')) fill = pieColors[0];
-                                else if (statusName.includes('batal') || statusName.includes('cancel') || statusName.includes('fail')) fill = pieColors[2];
-                                else if (statusName.includes('proses') || statusName.includes('pending') || statusName.includes('dikirim')) fill = pieColors[1];
-                                return <Cell key={`cell-${index}`} fill={fill} />;
-                              })}
-                            </Pie>
-                            <RechartsTooltip formatter={(val) => [`${val} Transaksi`, 'Jumlah']} />
-                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
 
 
 
-                  paymentProviderShare: charts.paymentProviderShare?.length > 0 ? (
-                    <DynamicCrossCard
-                      id="paymentProviderShare"
-                      title={chartCopy.paymentProviderShare.title}
-                      subtitle={chartCopy.paymentProviderShare.subtitle}
-                      data={charts.paymentProviderShare}
-                      categories={charts.paymentProviderShare.categories || []}
-                      preferred={6}
-                      defaultView="stackedBar"
-                      viewType={chartViews['paymentProviderShare'] || 'auto'}
-                      onViewTypeChange={handleChartViewChange}
-                      onHide={handleHideChart}
-                    />
-                  ) : null,
 
-                  courierEfficiency: charts.courierEfficiency?.length > 0 ? (() => {
-                    return (
-                      <ChartCard id="courierEfficiency" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.courierEfficiency.title} subtitle={chartCopy.courierEfficiency.subtitle}
-                        style={getAdaptiveCardStyle('courierEfficiency', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <ComposedChart data={charts.courierEfficiency} margin={{ left: 10, right: 20, top: 4, bottom: 4 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8ECEF" />
-                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} />
-                            <YAxis yAxisId="left" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <YAxis yAxisId="right" orientation="right" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <RechartsTooltip formatter={(val, name) => name === 'Omzet' ? formatRupiah(val) : formatRupiah(val)} />
-                            <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar yAxisId="left" dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} barSize={16} />
-                            <Line yAxisId="right" type="monotone" dataKey="fee" name="Ongkir" stroke={ANALYST_COLORS.secondary} strokeWidth={2} dot={{ r: 4 }} />
-                          </ComposedChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
 
-                  tableRevenue: charts.tableRevenue?.length > 0 ? (() => {
-                    const sortedTable = [...charts.tableRevenue].sort((a, b) => b.sales - a.sales).slice(0, 15);
-                    return (
-                      <ChartCard id="tableRevenue" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.tableRevenue.title} subtitle={chartCopy.tableRevenue.subtitle}
-                        style={getAdaptiveCardStyle('tableRevenue', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <BarChart data={sortedTable} layout="vertical" margin={{ left: 10, right: 20, top: 4, bottom: 4 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8ECEF" />
-                            <XAxis type="number" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <YAxis type="category" dataKey="name" width={60} tickFormatter={(val) => `Meja ${val}`} tick={{ fontSize: 11, fill: '#344054' }} axisLine={false} tickLine={false} />
-                            <RechartsTooltip formatter={(val) => [formatRupiah(val), 'Omzet']} />
-                            <Bar dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[0, 4, 4, 0]} barSize={14} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
 
-                  promoRoi: charts.promoRoi?.length > 0 ? (() => {
-                    return (
-                      <ChartCard id="promoRoi" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.promoRoi.title} subtitle={chartCopy.promoRoi.subtitle}
-                        style={getAdaptiveCardStyle('promoRoi', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <ComposedChart data={charts.promoRoi} margin={{ left: 10, right: 20, top: 4, bottom: 4 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8ECEF" />
-                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} />
-                            <YAxis yAxisId="left" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <YAxis yAxisId="right" orientation="right" tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
-                            <RechartsTooltip formatter={(val, name) => name === 'Omzet Bersih' ? formatRupiah(val) : formatRupiah(val)} />
-                            <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar yAxisId="left" dataKey="sales" name="Omzet Bersih" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} barSize={16} />
-                            <Line yAxisId="right" type="monotone" dataKey="discount" name="Nominal Diskon" stroke="#e11d48" strokeWidth={2} dot={{ r: 4 }} />
-                          </ComposedChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
 
-                  customerLoyaltyMix: charts.customerLoyaltyMix?.length > 0 ? (
-                    <DynamicCrossCard
-                      id="customerLoyaltyMix"
-                      title={chartCopy.customerLoyaltyMix.title}
-                      subtitle={chartCopy.customerLoyaltyMix.subtitle}
-                      data={charts.customerLoyaltyMix}
-                      categories={charts.customerLoyaltyMix.categories || []}
-                      preferred={6}
-                      defaultView="groupedBar"
-                      viewType={chartViews['customerLoyaltyMix'] || 'auto'}
-                      onViewTypeChange={handleChartViewChange}
-                      onHide={handleHideChart}
-                    />
-                  ) : null,
 
-                  variantProfitability: charts.variantProfitability?.length > 0 ? (() => {
-                    return (
-                      <ChartCard id="variantProfitability" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={6}
-                        title={chartCopy.variantProfitability.title} subtitle={chartCopy.variantProfitability.subtitle}
-                        style={getAdaptiveCardStyle('variantProfitability', 6)}
-                      >
-                        <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={1}>
-                          <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8ECEF" />
-                            <XAxis type="number" dataKey="margin" name="Margin" unit="%" tick={{ fontSize: 11, fill: '#667085' }} />
-                            <YAxis type="number" dataKey="qty" name="Kuantitas" unit=" Pcs" tick={{ fontSize: 11, fill: '#667085' }} />
-                            <ZAxis type="number" dataKey="sales" range={[40, 300]} name="Omzet" />
-                            <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} formatter={(val, name) => name === 'Omzet' ? formatRupiah(val) : name === 'Margin' ? `${val}%` : `${val} Pcs`} />
-                            <Scatter name="Varian" data={charts.variantProfitability} fill={ANALYST_COLORS.primary} fillOpacity={0.75} />
-                          </ScatterChart>
-                        </ResponsiveContainer>
-                      </ChartCard>
-                    );
-                  })() : null,
+                  
+
+
+
+
+
+
+
+                  
+
+
                 };
 
                 // Add custom library templates dynamically into chartElements
@@ -3412,7 +3129,65 @@ export default function UMKMInsight({
                     { key: 'pie', Icon: PieChartIcon, label: 'Pie', tip: 'Tampilan lingkaran' },
                     { key: 'table', Icon: List, label: 'Table', tip: 'Tampilan tabel' },
                   ];
-                  chartElements[id] = (
+                  
+                  let chartDataToPass = processedData;
+                  if (template.chart_code === 'HOURLY_SALES') chartDataToPass = charts.hourlySales || [];
+                  else if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = charts.weekdaySales || [];
+                  else if (template.chart_code === 'CATEGORY_SALES') chartDataToPass = charts.categorySales || [];
+                  else if (template.chart_code === 'PROMO_CAMPAIGN') chartDataToPass = charts.promoCampaign || [];
+                  else if (template.chart_code === 'CUSTOMER_SEGMENT') chartDataToPass = charts.customerSegment || [];
+                  else if (template.chart_code === 'ORDER_FULFILLMENT') chartDataToPass = charts.orderFulfillment || [];
+                  else if (template.chart_code === 'COURIER_EFFICIENCY') chartDataToPass = charts.courierEfficiency || [];
+                  else if (template.chart_code === 'TABLE_REVENUE') chartDataToPass = charts.tableRevenue || [];
+                  else if (template.chart_code === 'PROMO_ROI') chartDataToPass = charts.promoRoi || [];
+                  else if (template.chart_code === 'VARIANT_PROFITABILITY') chartDataToPass = charts.variantProfitability || [];
+
+                  if (template.chart_type === 'crosstab') {
+                    const crossData = template.chart_code === 'PAYMENT_PROVIDER' ? (charts.paymentProviderShare || []) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (charts.customerLoyaltyMix || []) : []);
+                    const crossCategories = template.chart_code === 'PAYMENT_PROVIDER' ? (['BCA', 'Mandiri', 'Gopay', 'OVO', 'ShopeePay', 'Tunai']) : (template.chart_code === 'CUSTOMER_LOYALTY' ? (['Pelanggan Baru', 'Pelanggan Kembali']) : []);
+
+                    chartElements[id] = (
+                      <DynamicCrossCard
+                        id={id}
+                        title={template.chart_name}
+                        subtitle={template.description}
+                        data={crossData}
+                        categories={crossCategories}
+                        preferred={template.default_size || 6}
+                        defaultView="stackedBar"
+                        viewType={current}
+                        onViewTypeChange={handleChartViewChange}
+                        onHide={handleHideChart}
+                        draggable={true}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                      />
+                    );
+                  } else {
+                    chartElements[id] = (
+                      <ChartCard
+                        id={id}
+                        title={template.chart_name}
+                        subtitle={template.description}
+                        action={<ViewToggle id={id} views={views} current={current} onSelect={handleChartViewChange} />}
+                        onHide={handleHideChart}
+                        onResize={handleResizeChart}
+                        preferredSize={template.default_size || 6}
+                        draggable={true}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        style={getAdaptiveCardStyle(id, template.default_size || 6)}
+                      >
+                        <TemplateChart template={template} rows={chartDataToPass} metricView={metricView} viewType={current} fieldMapping={chartLibraryMappings[template.id]} />
+                      </ChartCard>
+                    );
+                  }
+                  
+                  return; // Skip original chartElements[id]
+          
+chartElements[id] = (
                     <ChartCard
                       id={id}
                       title={template.chart_name}
