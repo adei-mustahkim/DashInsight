@@ -204,7 +204,7 @@ export const autoMapColumns = (headers: string[], dataRows: any[]) => {
 };
 
 export const extractSheetData = (worksheet: XLSX.WorkSheet) => {
-  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' }) as any[];
   if (rawRows.length === 0) return { headers: [], data: [], headerRowIndex: 0, rawRows: [] };
 
   let headerRowIndex = 0;
