@@ -5,6 +5,7 @@ import { config } from './config/index.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import clientRoutes from './routes/client.js';
+import settingsRoutes from './routes/settings.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // 404 handler
 app.use((_req, res) => {

@@ -47,6 +47,12 @@ export const adminUserApi = {
   resetPassword: (token: string, id: string, new_password: string) => request(`/admin/admins/${id}/reset-password`, { method: 'POST', body: { new_password }, token }),
 };
 
+export const settingsApi = {
+  getPublic: () => request('/settings/public'),
+  getAll: (token: string) => request('/settings', { token }),
+  update: (token: string, data: any) => request('/settings', { method: 'PUT', body: data, token }),
+};
+
 export const adminChartApi = {
   list: (token: string, filter?: any) => request('/admin/chart-templates' + (filter ? `?${new URLSearchParams(filter)}` : ''), { token }),
   getById: (token: string, id: string) => request(`/admin/chart-templates/${id}`, { token }),

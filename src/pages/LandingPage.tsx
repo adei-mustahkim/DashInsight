@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   ArrowRight,
   BarChart3,
@@ -30,7 +30,8 @@ import dashboardPreview from '../assets/gambar_1.png';
 import arifBudimanImg from '../assets/arif_budiman.png';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const ADMIN_WHATSAPP = '6285373328500';
+// Default WA jika gagal ambil dari API
+const DEFAULT_ADMIN_WHATSAPP = '6285373328500';
 
 type BusinessKey = 'Retail' | 'F&B' | 'Jasa' | 'Marketplace';
 
@@ -165,6 +166,19 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [adminWhatsapp, setAdminWhatsapp] = useState(DEFAULT_ADMIN_WHATSAPP);
+
+  // Ambil konfigurasi public dari database (misal WA Admin)
+  useEffect(() => {
+    fetch(`${API_BASE}/settings/public`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.admin_whatsapp) {
+          setAdminWhatsapp(data.admin_whatsapp);
+        }
+      })
+      .catch(err => console.error('Gagal mengambil pengaturan public', err));
+  }, []);
 
   const solution = useMemo(() => businessSolutions[activeTab], [activeTab]);
 
@@ -190,7 +204,7 @@ export default function LandingPage() {
       const message = encodeURIComponent(
         `*PENDAFTARAN CLIENT BARU*\n\nNama: ${formData.name}\nEmail: ${formData.email}\nBisnis: ${formData.business_name}\nTipe: ${formData.business_type}\nTelepon: ${formData.phone}\nAlamat: ${formData.address}\n\n_Menunggu persetujuan admin._`,
       );
-      window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${message}`, '_blank');
+      window.open(`https://wa.me/${adminWhatsapp}?text=${message}`, '_blank');
       setSuccess(true);
     } catch {
       setError('Kami belum dapat menghubungi server. Periksa koneksi lalu coba lagi.');
@@ -501,9 +515,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <div className="mt-10 columns-1 gap-5 md:columns-2 lg:columns-3 xl:columns-4">
               {testimonials.map(item => (
-                <article key={item.name} className="group relative overflow-hidden rounded-[1.6rem] border border-[#DDE7E1] bg-white p-5 shadow-[0_16px_40px_rgba(12,31,23,0.06)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(12,31,23,0.1)]">
+                <article key={item.name} className="group relative mb-5 break-inside-avoid overflow-hidden rounded-[1.6rem] border border-[#DDE7E1] bg-white p-6 shadow-[0_16px_40px_rgba(12,31,23,0.06)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(12,31,23,0.1)]">
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#236043] via-[#63B88A] to-[#DCEEE4]" />
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -517,10 +531,10 @@ export default function LandingPage() {
                     </div>
                     <span className="rounded-full bg-[#F0F7F3] px-2.5 py-1 text-[11px] font-semibold text-[#2B6B4B]">{item.result}</span>
                   </div>
-                  <p className="mt-4 text-[15px] leading-6 text-[#41554B]">“{item.quote}”</p>
-                  <div className="mt-5 flex items-center justify-between border-t border-[#EDF3EF] pt-4 text-xs text-[#7A8B82]">
+                  <p className="mt-5 text-[15px] leading-relaxed text-[#41554B]">“{item.quote}”</p>
+                  <div className="mt-6 flex items-center justify-between border-t border-[#EDF3EF] pt-4 text-xs text-[#7A8B82]">
                     <span className="font-medium">{item.business}</span>
-                    <span className="flex items-center gap-1 text-[#2B6B4B]"><span className="h-1.5 w-1.5 rounded-full bg-[#2F8A60]" />Aktif</span>
+                    <span className="flex items-center gap-1.5 text-[#2B6B4B]"><span className="h-1.5 w-1.5 rounded-full bg-[#2F8A60]" />Aktif</span>
                   </div>
                 </article>
               ))}
@@ -709,7 +723,7 @@ function RegistrationModal({ success, loading, error, formData, onChange, onSubm
 function FormField({ icon: Icon, label, ...props }: { icon: typeof User; label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="text-sm font-semibold text-[#30463C]">{label}
-      <div className="relative mt-2"><Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#71837A]" /><input {...props} className="landing-input pl-10" /></div>
+      <div className="relative mt-2"><Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#71837A]" /><input {...props} className="landing-input !pl-10" /></div>
     </label>
   );
 }

@@ -1,13 +1,17 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../stores/useAuth';
-import { adminUserApi, type AdminUser } from '../../services/api';
-import { Database, RotateCcw, Save, Server, ShieldCheck, Users, Plus, X, Edit2, Key } from 'lucide-react';
-import { DEFAULT_SYSTEM_SETTINGS as defaults, loadSystemSettings as load, resetSystemSettings, saveSystemSettings, type SystemSettings as Settings } from '../../storage/systemSettings';
+import { adminUserApi, settingsApi, type AdminUser } from '../../services/api';
+import { Database, RotateCcw, Save, Server, ShieldCheck, Users, Plus, X, Edit2, Key, Phone } from 'lucide-react';
+import { DEFAULT_SYSTEM_SETTINGS as defaults, type SystemSettings as Settings } from '../../storage/systemSettings';
 
 export default function AdminSettingsPage() {
   const { token, user } = useAuth();
-  const [settings, setSettings] = useState<Settings>(load);
+  
+  // Extend Settings type to include admin_whatsapp
+  type ExtendedSettings = Settings & { admin_whatsapp?: string };
+  
+  const [settings, setSettings] = useState<ExtendedSettings>({ ...defaults, admin_whatsapp: '6285373328500' });
   const [message, setMessage] = useState('');
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(true);
@@ -17,18 +21,40 @@ export default function AdminSettingsPage() {
   const [resetPw, setResetPw] = useState('');
   const [adminError, setAdminError] = useState('');
   const [adminLoading, setAdminLoading] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
-  const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings(current => ({ ...current, [key]: value }));
-  const save = () => { saveSystemSettings(settings); setMessage('Pengaturan tersimpan di browser admin ini.'); };
-  const reset = () => { setSettings(defaults); resetSystemSettings(); setMessage('Pengaturan dikembalikan ke default.'); };
+  const set = <K extends keyof ExtendedSettings>(key: K, value: ExtendedSettings[K]) => setSettings(current => ({ ...current, [key]: value }));
+  
+  const save = async () => { 
+    if (!token) return;
+    try {
+      await settingsApi.update(token, settings);
+      setMessage('Pengaturan berhasil disimpan ke database global.'); 
+    } catch (err) {
+      setMessage('Gagal menyimpan pengaturan.');
+    }
+  };
+  
+  const reset = () => { setSettings({ ...defaults, admin_whatsapp: '6285373328500' }); setMessage('Pengaturan dikembalikan ke default (belum disimpan).'); };
 
   useEffect(() => {
     if (!token) return;
     setLoadingAdmins(true);
-    adminUserApi.list(token)
-      .then(res => setAdmins(res.admins))
-      .catch(() => {})
-      .finally(() => setLoadingAdmins(false));
+    setLoadingSettings(true);
+    
+    Promise.all([
+      adminUserApi.list(token).catch(() => ({ admins: [] })),
+      settingsApi.getAll(token).catch(() => ({}))
+    ]).then(([adminRes, settingsRes]) => {
+      if (adminRes.admins) setAdmins(adminRes.admins);
+      if (Object.keys(settingsRes).length > 0) {
+        // Merge DB settings with defaults
+        setSettings(prev => ({ ...prev, ...settingsRes }));
+      }
+    }).finally(() => {
+      setLoadingAdmins(false);
+      setLoadingSettings(false);
+    });
   }, [token]);
 
   const handleCreateAdmin = async () => {
@@ -183,9 +209,11 @@ export default function AdminSettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-xl bg-gray-900 p-5 text-white">
-        <div className="flex items-center gap-2"><Database className="h-5 w-5" /><h2 className="font-semibold">Lingkup Penyimpanan</h2></div>
-        <p className="mt-2 max-w-2xl text-sm text-gray-300">Pengaturan ini disimpan lokal karena backend belum memiliki tabel system settings. Nilainya aman sebagai default UI dan tidak mengubah konfigurasi server atau database.</p>
+      <section className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2"><Phone className="h-5 w-5 text-[#276749]" /><h2 className="font-semibold text-gray-900">Kontak & Layanan</h2></div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <TextField label="Nomor WhatsApp Admin (Pendaftaran)" placeholder="Contoh: 6285373328500" value={settings.admin_whatsapp || ''} onChange={value => set('admin_whatsapp', value)} />
+        </div>
       </section>
 
       <div className="flex justify-end gap-3">
@@ -194,6 +222,10 @@ export default function AdminSettingsPage() {
       </div>
     </div>
   );
+}
+
+function TextField({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (value: string) => void }) {
+  return <label className="text-xs font-medium text-gray-700">{label}<div className="mt-1.5 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-[#276749]"><input type="text" value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} className="w-full bg-transparent px-3 py-2 text-sm outline-none" /></div></label>;
 }
 
 function NumberField({ label, suffix, value, min, max, onChange }: { label: string; suffix: string; value: number; min: number; max: number; onChange: (value: number) => void }) {

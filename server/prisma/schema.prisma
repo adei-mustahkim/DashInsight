@@ -194,3 +194,12 @@ model audit_logs {
 
   user users? @relation(fields: [user_id], references: [id], onDelete: SetNull)
 }
+
+// === System Settings ===
+model system_settings {
+  id          String   @id @default(uuid())
+  setting_key String   @unique
+  setting_val Json
+  description String?
+  updated_at  DateTime @updatedAt
+}
