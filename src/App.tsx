@@ -3131,14 +3131,15 @@ export default function UMKMInsight({
                   ];
                   
                   let chartDataToPass = processedData;
-                  if (template.chart_code === 'HOURLY_SALES') chartDataToPass = charts.hourlySales || [];
-                  else if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = charts.weekdaySales || [];
-                  else if (template.chart_code === 'CATEGORY_SALES') chartDataToPass = charts.categorySales || [];
+                  const mapValue = (arr) => (arr || []).map(d => ({ ...d, value: d[metricView === 'quantity' ? 'qty' : 'sales'] || d.sales || d.transactions || 0 }));
+                  if (template.chart_code === 'HOURLY_SALES') chartDataToPass = mapValue(charts.hourlySales);
+                  else if (template.chart_code === 'WEEKDAY_SALES') chartDataToPass = mapValue(charts.weekdaySales);
+                  else if (template.chart_code === 'CATEGORY_SALES') chartDataToPass = mapValue(charts.categorySales);
                   else if (template.chart_code === 'PROMO_CAMPAIGN') chartDataToPass = charts.promoCampaign || [];
-                  else if (template.chart_code === 'CUSTOMER_SEGMENT') chartDataToPass = charts.customerSegment || [];
-                  else if (template.chart_code === 'ORDER_FULFILLMENT') chartDataToPass = charts.orderFulfillment || [];
+                  else if (template.chart_code === 'CUSTOMER_SEGMENT') chartDataToPass = mapValue(charts.customerSegment);
+                  else if (template.chart_code === 'ORDER_FULFILLMENT') chartDataToPass = mapValue(charts.orderFulfillment);
                   else if (template.chart_code === 'COURIER_EFFICIENCY') chartDataToPass = charts.courierEfficiency || [];
-                  else if (template.chart_code === 'TABLE_REVENUE') chartDataToPass = charts.tableRevenue || [];
+                  else if (template.chart_code === 'TABLE_REVENUE') chartDataToPass = mapValue(charts.tableRevenue);
                   else if (template.chart_code === 'PROMO_ROI') chartDataToPass = charts.promoRoi || [];
                   else if (template.chart_code === 'VARIANT_PROFITABILITY') chartDataToPass = charts.variantProfitability || [];
 
