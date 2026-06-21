@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../stores/useAuth';
 import { Lock, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo-removebg-preview.png';
 
 export default function LoginPage() {
   const { login, user } = useAuth();
