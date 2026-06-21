@@ -2718,6 +2718,183 @@ export default function UMKMInsight({
                       </ChartCard>
                     );
                   })() : null,
+
+
+                  // === COMPLEX ADVANCED: Revenue Growth Trend ===
+                  revenueGrowth: charts.trendSales?.length > 0 ? (() => {
+                    const trendData = charts.trendSales.map((d, i) => {
+                      const prev = i > 0 ? charts.trendSales[i - 1].sales : d.sales;
+                      const growth = prev > 0 ? ((d.sales - prev) / prev) * 100 : 0;
+                      return { ...d, growth: Math.round(growth * 10) / 10, name: d.date };
+                    });
+                    return (
+                      <ChartCard id="revenueGrowth" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={12}
+                        title={chartCopy.revenueGrowth.title} subtitle={chartCopy.revenueGrowth.subtitle}
+                        style={getAdaptiveCardStyle('revenueGrowth', 12)}>
+                        <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
+                          <ComposedChart data={trendData} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
+                            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#667085' }} tickLine={false} axisLine={false} />
+                            <YAxis yAxisId="left" tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(0)}Jt` : v >= 1000 ? `${(v/1000).toFixed(0)}Rb` : v} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
+                            <YAxis yAxisId="right" orientation="right" tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: '#667085' }} axisLine={false} tickLine={false} />
+                            <RechartsTooltip formatter={(val, name) => name === 'Growth %' ? `${val}%` : formatRupiah(val)} />
+                            <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                            <Bar yAxisId="left" dataKey="sales" name="Omzet" fill={ANALYST_COLORS.primary} radius={[4, 4, 0, 0]} barSize={20} />
+                            <Line yAxisId="right" type="monotone" dataKey="growth" name="Growth %" stroke="#e11d48" strokeWidth={2.5} dot={{ r: 3, fill: '#e11d48' }} />
+                            {trendData[0]?.forecastSales !== undefined && (
+                              <Line yAxisId="left" type="monotone" dataKey="forecastSales" name="Forecast" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+                            )}
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      </ChartCard>
+                    );
+                  })() : null,
+
+                  // === COMPLEX TABLE: Staff Performance ===
+                  staffPerformanceTable: charts.staffSales?.length > 0 ? (() => {
+                    const sd = charts.staffSales.slice(0, 15).map(s => ({
+                      name: s.name, sales: s.sales || 0, tx: s.transactions || 0,
+                      aov: s.transactions > 0 ? (s.sales || 0) / s.transactions : 0, comm: s.commission || 0,
+                    }));
+                    const ts = sd.reduce((a, s) => a + s.sales, 0);
+                    const ttx = sd.reduce((a, s) => a + s.tx, 0);
+                    return (
+                      <ChartCard id="staffPerformanceTable" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={12}
+                        title={chartCopy.staffPerformanceTable.title} subtitle={chartCopy.staffPerformanceTable.subtitle}
+                        style={getAdaptiveCardStyle('staffPerformanceTable', 12)}>
+                        <div className="max-h-[320px] overflow-auto">
+                          <table className="w-full text-xs">
+                            <thead><tr className="text-left uppercase tracking-wider border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
+                              <th className="px-3 py-2 font-bold text-gray-600">Staff</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Omzet</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Transaksi</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">AOV</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Komisi</th>
+                              <th className="px-3 py-2 font-bold text-gray-500 text-right">% Omzet</th>
+                            </tr></thead>
+                            <tbody>
+                              {sd.map((s, i) => (
+                                <tr key={i} className="border-b border-gray-50 hover:bg-emerald-50/30">
+                                  <td className="px-3 py-2 font-medium">{s.name}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-emerald-700">{formatRupiah(s.sales)}</td>
+                                  <td className="px-3 py-2 text-right font-mono">{s.tx.toLocaleString('id-ID')}</td>
+                                  <td className="px-3 py-2 text-right font-mono">{formatRupiah(s.aov)}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-amber-600">{formatRupiah(s.comm)}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-gray-500">{ts > 0 ? ((s.sales / ts) * 100).toFixed(1) : '0'}%</td>
+                                </tr>
+                              ))}
+                              <tr className="border-t-2 border-emerald-200 bg-emerald-50 font-bold">
+                                <td className="px-3 py-2 text-emerald-800">TOTAL</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{formatRupiah(ts)}</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{ttx.toLocaleString('id-ID')}</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{ttx > 0 ? formatRupiah(ts / ttx) : '-'}</td>
+                                <td className="px-3 py-2 text-right font-mono text-amber-600">{formatRupiah(sd.reduce((a, r) => a + r.comm, 0))}</td>
+                                <td className="px-3 py-2 text-right font-mono text-gray-500">100%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </ChartCard>
+                    );
+                  })() : null,
+
+                  // === COMPLEX TABLE: Product Profitability ===
+                  profitabilityTable: charts.topProducts?.length > 0 ? (() => {
+                    const pd = charts.topProducts.slice(0, 15).map(p => {
+                      const s = p.sales || 0, c = p.cogs || 0, pf = s - c;
+                      return { name: p.name, sales: s, cogs: c, profit: pf, margin: s > 0 ? (pf / s) * 100 : 0, qty: p.qty || 0 };
+                    });
+                    const ts = pd.reduce((a, p) => a + p.sales, 0);
+                    const tc = pd.reduce((a, p) => a + p.cogs, 0);
+                    return (
+                      <ChartCard id="profitabilityTable" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={12}
+                        title={chartCopy.profitabilityTable.title} subtitle={chartCopy.profitabilityTable.subtitle}
+                        style={getAdaptiveCardStyle('profitabilityTable', 12)}>
+                        <div className="max-h-[320px] overflow-auto">
+                          <table className="w-full text-xs">
+                            <thead><tr className="text-left uppercase tracking-wider border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
+                              <th className="px-3 py-2 font-bold text-gray-600">Produk</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Omzet</th>
+                              <th className="px-3 py-2 font-bold text-rose-600 text-right">HPP</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Laba</th>
+                              <th className="px-3 py-2 font-bold text-gray-500 text-right">Margin</th>
+                              <th className="px-3 py-2 font-bold text-gray-500 text-right">Unit</th>
+                            </tr></thead>
+                            <tbody>
+                              {pd.map((p, i) => (
+                                <tr key={i} className="border-b border-gray-50 hover:bg-emerald-50/30">
+                                  <td className="px-3 py-2 font-medium truncate max-w-[180px]">{p.name}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-emerald-700">{formatRupiah(p.sales)}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-rose-600">{formatRupiah(p.cogs)}</td>
+                                  <td className={`px-3 py-2 text-right font-mono font-semibold ${p.profit >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>{formatRupiah(p.profit)}</td>
+                                  <td className={`px-3 py-2 text-right font-mono font-semibold ${p.margin >= 20 ? 'text-[#276749]' : p.margin < 0 ? 'text-red-500' : 'text-amber-600'}`}>{p.margin.toFixed(1)}%</td>
+                                  <td className="px-3 py-2 text-right font-mono text-gray-500">{p.qty.toLocaleString('id-ID')}</td>
+                                </tr>
+                              ))}
+                              <tr className="border-t-2 border-emerald-200 bg-emerald-50 font-bold">
+                                <td className="px-3 py-2 text-emerald-800">TOTAL</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{formatRupiah(ts)}</td>
+                                <td className="px-3 py-2 text-right font-mono text-rose-600">{formatRupiah(tc)}</td>
+                                <td className={`px-3 py-2 text-right font-mono font-semibold ${(ts - tc) >= 0 ? 'text-emerald-800' : 'text-rose-600'}`}>{formatRupiah(ts - tc)}</td>
+                                <td className="px-3 py-2 text-right font-mono text-gray-800">{ts > 0 ? (((ts - tc) / ts) * 100).toFixed(1) : '0'}%</td>
+                                <td className="px-3 py-2 text-right font-mono text-gray-500">{pd.reduce((a, p) => a + p.qty, 0).toLocaleString('id-ID')}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </ChartCard>
+                    );
+                  })() : null,
+
+                  // === COMPLEX TABLE: Channel Performance ===
+                  channelMixTable: charts.channelSales?.length > 0 ? (() => {
+                    const cd = charts.channelSales.slice(0, 10).map(c => {
+                      const s = c.sales || c.value || 0, t = c.transactions || 0, d = c.discount || 0;
+                      return { name: c.name, sales: s, tx: t, discount: d, aov: t > 0 ? s / t : 0 };
+                    });
+                    const ts = cd.reduce((a, c) => a + c.sales, 0);
+                    const ttx = cd.reduce((a, c) => a + c.tx, 0);
+                    return (
+                      <ChartCard id="channelMixTable" onHide={handleHideChart} onResize={handleResizeChart} preferredSize={12}
+                        title={chartCopy.channelMixTable.title} subtitle={chartCopy.channelMixTable.subtitle}
+                        style={getAdaptiveCardStyle('channelMixTable', 12)}>
+                        <div className="max-h-[320px] overflow-auto">
+                          <table className="w-full text-xs">
+                            <thead><tr className="text-left uppercase tracking-wider border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
+                              <th className="px-3 py-2 font-bold text-gray-600">Channel</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Omzet</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">Transaksi</th>
+                              <th className="px-3 py-2 font-bold text-emerald-700 text-right">AOV</th>
+                              <th className="px-3 py-2 font-bold text-rose-600 text-right">Diskon</th>
+                              <th className="px-3 py-2 font-bold text-gray-500 text-right">% Omzet</th>
+                            </tr></thead>
+                            <tbody>
+                              {cd.map((c, i) => (
+                                <tr key={i} className="border-b border-gray-50 hover:bg-emerald-50/30">
+                                  <td className="px-3 py-2 font-medium">{c.name}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-emerald-700">{formatRupiah(c.sales)}</td>
+                                  <td className="px-3 py-2 text-right font-mono">{c.tx.toLocaleString('id-ID')}</td>
+                                  <td className="px-3 py-2 text-right font-mono">{formatRupiah(c.aov)}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-rose-600">{formatRupiah(c.discount)}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-gray-500">{ts > 0 ? ((c.sales / ts) * 100).toFixed(1) : '0'}%</td>
+                                </tr>
+                              ))}
+                              <tr className="border-t-2 border-emerald-200 bg-emerald-50 font-bold">
+                                <td className="px-3 py-2 text-emerald-800">TOTAL</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{formatRupiah(ts)}</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{ttx.toLocaleString('id-ID')}</td>
+                                <td className="px-3 py-2 text-right font-mono text-emerald-800">{ttx > 0 ? formatRupiah(ts / ttx) : '-'}</td>
+                                <td className="px-3 py-2 text-right font-mono text-rose-600">{formatRupiah(cd.reduce((a, c) => a + c.discount, 0))}</td>
+                                <td className="px-3 py-2 text-right font-mono text-gray-500">100%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </ChartCard>
+                    );
+                  })() : null,
+
+
                   topProducts: <DynamicBreakdownCard id="topProducts" onHide={handleHideChart} viewType={chartViews.topProducts || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.topProducts.title} subtitle={chartCopy.topProducts.subtitle} items={dimensions.product ? charts.topProducts : []} color={ANALYST_COLORS.primary} label="produk" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} />,
                   dataTable: dimensions.product ? <DataTableCard id="dataTable" onHide={handleHideChart} title={chartCopy.dataTable.title} items={charts.topProducts} draggable={true} onDragStart={handleDragStart} onDragOver={handleDragOver} onDrop={handleDrop} /> : null,
                   staffSales: dimensions.staff ? <DynamicBreakdownCard id="staffSales" onHide={handleHideChart} viewType={chartViews.staffSales || 'auto'} onViewTypeChange={handleChartViewChange} title={chartCopy.staffSales.title} subtitle={chartCopy.staffSales.subtitle} items={charts.staffSales} color={ANALYST_COLORS.primary} label="staff" valueKey={metricView === 'quantity' ? 'qty' : 'sales'} /> : null,
