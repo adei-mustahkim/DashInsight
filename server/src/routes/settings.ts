@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticate, requireAdmin } from '../middlewares/auth.js';
+import { authMiddleware, requireAdmin } from '../middlewares/auth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -33,7 +33,7 @@ router.get('/public', async (req, res) => {
 });
 
 // Get all settings (admin only)
-router.get('/', authenticate, requireAdmin, async (req, res) => {
+router.get('/', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const settings = await prisma.system_settings.findMany();
     const result: Record<string, any> = {};
@@ -48,7 +48,7 @@ router.get('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update settings (admin only)
-router.put('/', authenticate, requireAdmin, async (req, res) => {
+router.put('/', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const updates = req.body; // e.g. { admin_whatsapp: '62812345678', maxUploadMb: 50 }
     
