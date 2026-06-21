@@ -166,7 +166,7 @@ export default function AdminDashboardPage() {
             <CircularProgress 
               value={stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0} 
               size={120} 
-              color="#A855F7" 
+              color="#276749" 
             />
           </div>
 
