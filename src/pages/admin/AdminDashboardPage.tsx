@@ -5,6 +5,7 @@ import { adminClientApi, type AdminClient } from '../../services/api';
 import { Users, Activity, AlertTriangle, CheckCircle, Clock, BarChart3, ArrowUpRight, ArrowDownRight, Bell, UserPlus, ArrowRight, Shield, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../../components/Common/StatusBadge';
+import CircularProgress from '../../components/Charts/CircularProgress';
 
 export default function AdminDashboardPage() {
   const { token, user } = useAuth();
@@ -159,6 +160,16 @@ export default function AdminDashboardPage() {
             <h2 className="font-semibold text-gray-900 text-sm">Status Client</h2>
             <BarChart3 className="w-4 h-4 text-gray-400" />
           </div>
+          
+          <div className="flex flex-col items-center justify-center mb-6 pt-2">
+            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4">Persentase Aktif</p>
+            <CircularProgress 
+              value={stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0} 
+              size={120} 
+              color="#A855F7" 
+            />
+          </div>
+
           {statusDistribution.length > 0 ? (
             <div className="space-y-3">
               {statusDistribution.map(item => {
