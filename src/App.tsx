@@ -1608,6 +1608,7 @@ export default function UMKMInsight({
     localStorage.removeItem('umkm_dataset_history');
     localStorage.removeItem('dashinsight_hidden_kpis');
     localStorage.removeItem('dashinsight_show_analysis_summary');
+    localStorage.removeItem('dashinsight_client_charts');
     // Remove all layout keys
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
@@ -1626,6 +1627,7 @@ export default function UMKMInsight({
     setChartViews({});
     setChartRotations({});
     setHiddenCharts([]);
+    setClientCustomCharts([]);
     setDateFilter('all');
     setCategoryFilter('all');
     setChannelFilter('all');
