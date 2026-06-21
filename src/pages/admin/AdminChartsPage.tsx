@@ -883,9 +883,8 @@ function SearchableSelect({ value, options, onChange, disabled = false, placehol
         onChange={event => commit(event.target.value)}
         onFocus={event => event.currentTarget.select()}
         onBlur={() => setQuery(options.find(option => option.value === value)?.label || value)}
-        className={`w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-70 ${className}`}
+        className={`w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-70 ${className}`}
       />
-      {!disabled && <Search className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />}
       <datalist id={listId}>
         {options.filter(option => !option.disabled).map(option => <option key={`${option.value}-${option.label}`} value={option.label} />)}
       </datalist>

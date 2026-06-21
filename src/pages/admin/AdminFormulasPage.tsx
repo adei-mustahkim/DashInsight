@@ -30,6 +30,47 @@ function isJsonObject(value: unknown): value is object {
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback;
 }
+
+import { useId } from 'react';
+
+type SearchableOption = { value: string; label: string; disabled?: boolean };
+
+function SearchableSelect({ value, options, onChange, disabled = false, placeholder = 'Cari atau pilih...', className = '' }: { value: string; options: SearchableOption[]; onChange: (value: string) => void; disabled?: boolean; placeholder?: string; className?: string }) {
+  const listId = useId();
+  const selectedLabel = options.find(option => option.value === value)?.label || value;
+  const [query, setQuery] = useState(selectedLabel);
+
+  useEffect(() => {
+    setQuery(selectedLabel);
+  }, [selectedLabel]);
+
+  const commit = (input: string) => {
+    setQuery(input);
+    const normalized = input.trim().toLowerCase();
+    const match = options.find(option => !option.disabled && (option.label.toLowerCase() === normalized || option.value.toLowerCase() === normalized));
+    if (match) onChange(match.value);
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        list={disabled ? undefined : listId}
+        value={query}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={event => commit(event.target.value)}
+        onFocus={event => event.currentTarget.select()}
+        onBlur={() => setQuery(options.find(option => option.value === value)?.label || value)}
+        className={`w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-70 ${className}`}
+      />
+      <datalist id={listId}>
+        {options.filter(option => !option.disabled).map(option => <option key={`${option.value}-${option.label}`} value={option.label} />)}
+      </datalist>
+    </div>
+  );
+}
+
 export default function AdminFormulasPage() {
   const { token } = useAuth();
   const [formulas, setFormulas] = useState<FormulaTemplate[]>([]);
@@ -803,17 +844,13 @@ function FormulaModal({ fieldDictionary, title, mode = 'create', initialData, on
                       <div className="flex-none px-2 py-2 text-sm font-semibold text-gray-400">DARI</div>
                       <div className="flex-1">
                         <label className="text-xs font-medium text-gray-700 block mb-1">Pilih Kolom Data</label>
-                        <select
-                          disabled={isView}
-                          value={formData.formula_json.field || ''}
-                          onChange={e => syncFromVisual({ type: 'aggregation', operation: formData.formula_json.operation || 'SUM', field: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-60"
-                        >
-                          <option value="">-- Pilih Kolom --</option>
-                          {fieldDictionary.map(f => (
-                            <option key={f.field_key} value={f.field_key}>{f.field_label} ({f.field_key})</option>
-                          ))}
-                        </select>
+                        <SearchableSelect
+      disabled={isView}
+      value={formData.formula_json.field || ''}
+      onChange={value => syncFromVisual({ type: 'aggregation', operation: formData.formula_json.operation || 'SUM', field: value })}
+      options={fieldDictionary.map(f => ({ value: f.field_key, label: `${f.field_label} (${f.field_key})` }))}
+      placeholder="Ketik untuk mencari kolom..."
+    />
                       </div>
                     </div>
                   )}
