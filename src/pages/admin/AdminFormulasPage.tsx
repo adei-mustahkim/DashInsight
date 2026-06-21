@@ -1,7 +1,7 @@
 // DashInsight - Admin Formula Builder Page (Full Implementation)
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../../stores/useAuth';
-import { adminFormulaApi, type FormulaStatus, type FormulaTemplate } from '../../services/api';
+import { adminFormulaApi, adminFieldApi, type FieldDictionary, type FormulaStatus, type FormulaTemplate } from '../../services/api';
 import {
   Plus, FileText, Search, Eye, Edit2, Archive, CheckCircle, X, ChevronDown, ChevronUp, ArrowRight, Trash2
 } from 'lucide-react';
@@ -33,6 +33,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 export default function AdminFormulasPage() {
   const { token } = useAuth();
   const [formulas, setFormulas] = useState<FormulaTemplate[]>([]);
+  const [fieldDictionary, setFieldDictionary] = useState<FieldDictionary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -241,7 +242,7 @@ export default function AdminFormulasPage() {
 
       {/* Modal - Create */}
       {modal.type === 'create' && (
-        <FormulaModal
+        <FormulaModal fieldDictionary={fieldDictionary}
           title="Buat Metric / Formula"
           onClose={() => setModal({ type: 'none' })}
           onSave={async (data) => {
@@ -256,7 +257,7 @@ export default function AdminFormulasPage() {
 
       {/* Modal - View */}
       {modal.type === 'view' && modal.data && (
-        <FormulaModal
+        <FormulaModal fieldDictionary={fieldDictionary}
           title="Detail Formula"
           mode="view"
           initialData={modal.data}
@@ -289,7 +290,7 @@ export default function AdminFormulasPage() {
 
       {/* Modal - Edit */}
       {modal.type === 'edit' && modal.data && (
-        <FormulaModal
+        <FormulaModal fieldDictionary={fieldDictionary}
           title="Edit Formula"
           mode="edit"
           initialData={modal.data}
@@ -577,6 +578,7 @@ function FormulaTestModal({ formula, testing, result, onTest, onClose }: {
   );
 }
 interface FormulaModalProps {
+  fieldDictionary: FieldDictionary[];
   title: string;
   mode?: 'view' | 'edit' | 'create';
   initialData?: FormulaTemplate;
@@ -593,7 +595,7 @@ interface FormulaModalProps {
   }) => Promise<void> | void;
 }
 
-function FormulaModal({ title, mode = 'create', initialData, onClose, onSave }: FormulaModalProps) {
+function FormulaModal({ fieldDictionary, title, mode = 'create', initialData, onClose, onSave }: FormulaModalProps) {
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const isCreate = mode === 'create';
@@ -608,6 +610,7 @@ function FormulaModal({ title, mode = 'create', initialData, onClose, onSave }: 
     formula_json: initialData?.formula_json || { type: 'aggregation', operation: 'SUM', field: '' },
     status: initialData?.status || 'draft',
   });
+  const [uiMode, setUiMode] = useState<'visual'|'json'>('visual');
   const [jsonText, setJsonText] = useState(() => JSON.stringify(formData.formula_json, null, 2));
   const [jsonError, setJsonError] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -631,6 +634,13 @@ function FormulaModal({ title, mode = 'create', initialData, onClose, onSave }: 
   const applyExample = (json: object) => {
     setFormData({ ...formData, formula_json: json });
     setJsonText(JSON.stringify(json, null, 2));
+    setJsonError('');
+  };
+
+  
+  const syncFromVisual = (newJson: any) => {
+    setFormData({ ...formData, formula_json: newJson });
+    setJsonText(JSON.stringify(newJson, null, 2));
     setJsonError('');
   };
 
@@ -732,29 +742,87 @@ function FormulaModal({ title, mode = 'create', initialData, onClose, onSave }: 
             />
           </div>
 
-          {/* JSON Rule Editor */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-medium text-gray-600">JSON Rule *</label>
-              {jsonError && <span className="text-xs text-red-500">{jsonError}</span>}
-            </div>
-            <div className="relative">
-              <textarea
-                value={jsonText}
-                onChange={e => handleJsonChange(e.target.value)}
-                disabled={isView}
-                rows={12}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono bg-gray-900 text-emerald-400 focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-60 resize-none"
-                placeholder='{"type": "aggregation", "operation": "SUM", "field": "sales_amount"}'
-              />
-            </div>
-            <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-              <p className="font-medium mb-1">Operasi yang tersedia:</p>
-              <div className="flex flex-wrap gap-1">
-                {OPERATIONS.map(op => (
-                  <span key={op} className="px-1.5 py-0.5 bg-blue-100 rounded font-mono">{op}</span>
-                ))}
+          {/* Formula Builder */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Aturan Formula</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Tentukan bagaimana nilai ini dihitung.</p>
               </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-1">
+                <button
+                  type="button"
+                  onClick={() => setUiMode('visual')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${uiMode === 'visual' ? 'bg-[#276749] text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                >Visual Builder</button>
+                <button
+                  type="button"
+                  onClick={() => setUiMode('json')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${uiMode === 'json' ? 'bg-[#276749] text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                >JSON Mentah</button>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              {uiMode === 'json' ? (
+                <div>
+                  {jsonError && <span className="text-xs text-red-500 mb-1 block">{jsonError}</span>}
+                  <textarea
+                    value={jsonText}
+                    onChange={e => handleJsonChange(e.target.value)}
+                    disabled={isView}
+                    rows={8}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono bg-gray-900 text-emerald-400 focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-60 resize-none"
+                    placeholder='{"type": "aggregation", "operation": "SUM", "field": "sales_amount"}'
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {formData.formula_type === 'aggregation' && (
+                    <div className="flex flex-col sm:flex-row gap-3 items-end">
+                      <div className="flex-1">
+                        <label className="text-xs font-medium text-gray-700 block mb-1">Pilih Operasi</label>
+                        <select
+                          disabled={isView}
+                          value={formData.formula_json.operation || 'SUM'}
+                          onChange={e => syncFromVisual({ type: 'aggregation', operation: e.target.value, field: formData.formula_json.field || '' })}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-60"
+                        >
+                          <option value="SUM">Total (SUM)</option>
+                          <option value="AVG">Rata-rata (AVG)</option>
+                          <option value="COUNT">Jumlah Baris (COUNT)</option>
+                          <option value="COUNT_DISTINCT">Jumlah Unik (COUNT DISTINCT)</option>
+                          <option value="MAX">Nilai Tertinggi (MAX)</option>
+                          <option value="MIN">Nilai Terendah (MIN)</option>
+                        </select>
+                      </div>
+                      <div className="flex-none px-2 py-2 text-sm font-semibold text-gray-400">DARI</div>
+                      <div className="flex-1">
+                        <label className="text-xs font-medium text-gray-700 block mb-1">Pilih Kolom Data</label>
+                        <select
+                          disabled={isView}
+                          value={formData.formula_json.field || ''}
+                          onChange={e => syncFromVisual({ type: 'aggregation', operation: formData.formula_json.operation || 'SUM', field: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-60"
+                        >
+                          <option value="">-- Pilih Kolom --</option>
+                          {fieldDictionary.map(f => (
+                            <option key={f.field_key} value={f.field_key}>{f.field_label} ({f.field_key})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.formula_type !== 'aggregation' && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                      <p className="font-semibold mb-1">Mode Visual Belum Mendukung Tipe Ini</p>
+                      <p>Visual Builder saat ini difokuskan untuk tipe <strong>aggregation</strong>. Untuk membuat rumus turunan (seperti Profit Margin = (Revenue - COGS) / Revenue), silakan gunakan mode <strong>JSON Mentah</strong> atau pilih dari contoh di bawah.</p>
+                      <button type="button" onClick={() => setUiMode('json')} className="mt-3 px-3 py-1.5 bg-amber-600 text-white rounded-md text-xs font-semibold hover:bg-amber-700 transition">Beralih ke JSON Mentah</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

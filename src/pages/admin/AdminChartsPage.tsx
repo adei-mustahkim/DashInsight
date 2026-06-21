@@ -30,6 +30,22 @@ const BUSINESS_TYPES = ['General', 'Retail', 'Kuliner', 'Fashion', 'Online Shop'
 const FIELD_ROLES = ['x', 'y', 'color', 'size', 'filter', 'label'];
 const DATA_TYPES = ['number', 'string', 'date', 'label'];
 const FORMULA_ROLES = ['primary', 'secondary', 'derived'];
+
+const FIELD_ROLE_LABELS: Record<string, string> = {
+  x: 'Sumbu X (Bawah)',
+  y: 'Nilai Y (Utama)',
+  color: 'Warna Pembeda',
+  size: 'Ukuran Gelembung',
+  filter: 'Filter / Kategori',
+  label: 'Label Teks'
+};
+
+const FORMULA_ROLE_LABELS: Record<string, string> = {
+  primary: 'Angka Utama',
+  secondary: 'Pembanding 1',
+  derived: 'Pembanding 2'
+};
+
 const FIELD_OPTIONS = [
   { key: 'transaction_date', label: 'Tanggal Transaksi', type: 'date' },
   { key: 'transaction_time', label: 'Jam Transaksi', type: 'string' },
@@ -717,7 +733,7 @@ function ChartFormModal({ chart, formulas, fieldDictionary, mode = 'create', onC
             ) : <div className="mt-3 space-y-2">
               {data.fields.length === 0 ? <EmptyConfig text="Belum ada kolom. Gunakan 'Isi Kolom & Rumus' di atas atau tambah kolom manual." /> : data.fields.map((field, index) => (
                 <div key={index} className="grid gap-2 rounded-lg bg-gray-50 p-3 md:grid-cols-[110px_minmax(160px,1fr)_130px_100px_110px_36px] md:items-center">
-                  <FormSelect label="Role" value={field.field_role} disabled={isView} options={FIELD_ROLES} onChange={value => updateField(index, { field_role: value })} compact />
+                  <FormSelect label="Role" value={field.field_role} disabled={isView} options={FIELD_ROLES} labels={FIELD_ROLE_LABELS} onChange={value => updateField(index, { field_role: value })} compact />
                   <label className="text-xs font-medium text-gray-700">Kolom
                     <SearchableSelect
                       value={field.field_label}
@@ -749,7 +765,7 @@ function ChartFormModal({ chart, formulas, fieldDictionary, mode = 'create', onC
               {data.formulas.length === 0 ? <EmptyConfig text={formulas.length === 0 ? 'Belum ada formula aktif yang tersedia.' : 'Belum ada rumus. Gunakan tombol otomatis di atas atau tambah rumus manual.'} /> : data.formulas.map((formula, index) => (
                 <div key={`${formula.formula_template_id}-${index}`} className="grid gap-2 rounded-lg bg-gray-50 p-3 md:grid-cols-[minmax(220px,1fr)_140px_110px_36px] md:items-center">
                   <label className="text-xs font-medium text-gray-700">Formula<SearchableSelect value={formula.formula_template_id} disabled={isView} onChange={value => updateFormula(index, { formula_template_id: value })} options={formulas.filter(option => option.id === formula.formula_template_id || !data.formulas.some(item => item.formula_template_id === option.id)).map(option => ({ value: option.id, label: `${option.formula_name} (${option.formula_code})` }))} className="mt-1 bg-white" /></label>
-                  <FormSelect label="Role" value={formula.formula_role} disabled={isView} options={FORMULA_ROLES} onChange={value => updateFormula(index, { formula_role: value })} compact />
+                  <FormSelect label="Role" value={formula.formula_role} disabled={isView} options={FORMULA_ROLES} labels={FORMULA_ROLE_LABELS} onChange={value => updateFormula(index, { formula_role: value })} compact />
                   <Checkbox label="Wajib" checked={formula.is_required} disabled={isView} onChange={checked => updateFormula(index, { is_required: checked })} />
                   {!isView && <button type="button" onClick={() => removeFormula(index)} className="rounded p-2 text-red-600 hover:bg-red-50" aria-label={`Hapus formula ${index + 1}`}><Trash2 className="h-4 w-4" /></button>}
                 </div>
