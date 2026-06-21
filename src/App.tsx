@@ -10,7 +10,7 @@ import {
   BarChart3, PieChart as PieChartIcon, LayoutDashboard, Settings,
   HelpCircle, ChevronRight, FileText, Download, Printer, TrendingUp,
   Users, ShoppingBag, CreditCard, ChevronLeft, ChevronUp, ChevronDown, Lightbulb, PlayCircle,
-  Filter, RotateCcw, Package, MapPin, CalendarDays, Target, Activity, LayoutGrid, Radar as RadarIcon, List, X, Plus, GripHorizontal, Tag, Truck, Award, Maximize2, LogOut, Menu, Layers, Eye, EyeOff
+  Filter, RotateCcw, Package, MapPin, CalendarDays, Target, Activity, LayoutGrid, Radar as RadarIcon, List, X, Plus, GripHorizontal, Tag, Truck, Award, Maximize2, LogOut, Menu, Layers, Eye, EyeOff, Search
 } from 'lucide-react';
 import { useAuth } from './stores/useAuth';
 import logoImg from './assets/logo.png';
@@ -560,6 +560,7 @@ export default function UMKMInsight({
     try { return JSON.parse(localStorage.getItem('dashinsight_hidden_kpis') || '[]'); } catch { return []; }
   });
   const [mappingTemplate, setMappingTemplate] = useState<ChartTemplate | null>(null);
+  const [chartSearchQuery, setChartSearchQuery] = useState('');
   const [chartLibraryMappings, setChartLibraryMappings] = useState<Record<string, Record<string, string>>>(() => {
     if (window.__EXPORTED_DATA__?.chartLibraryMappings) return window.__EXPORTED_DATA__.chartLibraryMappings;
     try { return JSON.parse(localStorage.getItem('dashinsight_chart_mappings') || '{}'); } catch { return {}; }
@@ -3794,7 +3795,13 @@ chartElements[id] = (
           {currentView === 'chartlib' && (
             <div className="p-4 md:p-8">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Visualisasi Data</h1>
-              <p className="text-sm text-gray-500 mb-6">Sesuaikan chart dengan kolom dataset aktif. Pengaturan hanya disimpan di perangkat ini.</p>
+              <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <p className="text-sm text-gray-500">Sesuaikan chart dengan kolom dataset aktif. Pengaturan hanya disimpan di perangkat ini.</p>
+                <div className="relative max-w-xs w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input type="text" placeholder="Cari nama chart..." value={chartSearchQuery} onChange={e => setChartSearchQuery(e.target.value)} className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]" />
+                </div>
+              </div>
               {processedData.length === 0 ? (
                 <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
                   <FileSpreadsheet className="mx-auto mb-4 h-12 w-12 text-gray-300" />
@@ -3803,7 +3810,7 @@ chartElements[id] = (
                 </div>
               ) : chartTemplates.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {chartTemplates.filter(template => (template.chart_fields || []).length === 0 || (template.chart_fields || []).some(field => Boolean(getMappedColumn(template, field)))).map((tpl) => (
+                  {chartTemplates.filter(template => (template.chart_fields || []).length === 0 || (template.chart_fields || []).some(field => Boolean(getMappedColumn(template, field)))).filter(template => !chartSearchQuery || template.chart_name.toLowerCase().includes(chartSearchQuery.toLowerCase())).map((tpl) => (
                     <div key={tpl.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: tpl.chart_type === 'pie' || tpl.chart_type === 'doughnut' ? '#eff6ff' : tpl.chart_type === 'line' ? '#ecfdf5' : '#f5f3ff' }}>

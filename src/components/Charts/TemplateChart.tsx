@@ -102,7 +102,7 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
       grouped[key].barVal += Number(r[yBarField]) || 0;
       grouped[key].lineVal += Number(r[yLineField]) || 0;
     });
-    const data = Object.values(grouped).slice(0, 15);
+    const data = Object.values(grouped).slice(0, 30);
 
     return (
       <ResponsiveContainer width="100%" height={280}>
@@ -189,13 +189,13 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
     const data = aggregateBy(rows, labelField, valueField, 'sum');
     return (
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={data.slice(0, 15)} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
+        <BarChart data={data.slice(0, 30)} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} tickLine={false} axisLine={false} interval={0} angle={-35} textAnchor="end" height={60} />
           <YAxis tickFormatter={shortCurrency} tick={{ fontSize: 11, fill: '#667085' }} tickLine={false} axisLine={false} />
           <Tooltip formatter={(val: number) => formatRupiah(val)} />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-            {data.slice(0, 15).map((_, idx) => (
+            {data.slice(0, 30).map((_, idx) => (
               <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
             ))}
           </Bar>
@@ -311,7 +311,7 @@ export function TemplateChart({ template, rows, metricView = 'revenue', viewType
   const dataFallback = aggregateBy(rows, labelField, valueField, 'sum');
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={dataFallback.slice(0, 15)} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
+      <BarChart data={dataFallback.slice(0, 30)} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8ECEF" />
         <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#667085' }} tickLine={false} axisLine={false} />
         <YAxis tick={{ fontSize: 11, fill: '#667085' }} tickLine={false} axisLine={false} />
