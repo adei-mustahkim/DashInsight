@@ -17,16 +17,15 @@ import CircularProgress from './CircularProgress';
 
 // Chart colors palette
 const CHART_COLORS = [
-  '#276749', // primary green
-  '#3B82F6', // blue
-  '#8B5CF6', // purple
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#10B981', // emerald
-  '#6366F1', // indigo
-  '#EC4899', // pink
-  '#14B8A6', // teal
-  '#F97316', // orange
+  '#14532d', // green-900 (paling gelap)
+  '#166534', // green-800
+  '#15803d', // green-700
+  '#16a34a', // green-600
+  '#22c55e', // green-500
+  '#4ade80', // green-400
+  '#86efac', // green-300
+  '#bbf7d0', // green-200
+  '#dcfce7', // green-100 (paling terang)
 ];
 
 interface DynamicChartProps {
