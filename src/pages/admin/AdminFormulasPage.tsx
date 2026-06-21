@@ -54,9 +54,13 @@ export default function AdminFormulasPage() {
 
     async function loadData() {
       try {
-        const res = await adminFormulaApi.list(authToken, statusFilter || undefined);
+        const [formulasRes, fieldsRes] = await Promise.all([
+          adminFormulaApi.list(authToken, statusFilter || undefined),
+          adminFieldApi.list(authToken)
+        ]);
         if (mountedRef.current) {
-          setFormulas(res.templates);
+          setFormulas(formulasRes.templates);
+          setFieldDictionary(fieldsRes.fields);
           setLoading(false);
         }
       } catch (error: unknown) {
