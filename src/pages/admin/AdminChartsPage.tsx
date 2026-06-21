@@ -27,17 +27,20 @@ const CHART_TYPE_LABELS: Record<string, string> = {
 };
 const CHART_CATEGORIES = ['comparison', 'trend', 'composition', 'distribution', 'metric'];
 const BUSINESS_TYPES = ['General', 'Retail', 'Kuliner', 'Fashion', 'Online Shop', 'Jasa'];
-const FIELD_ROLES = ['x', 'y', 'color', 'size', 'filter', 'label'];
+const FIELD_ROLES = ['x', 'y', 'y_bar', 'y_line', 'color', 'size', 'filter', 'label', 'target'];
 const DATA_TYPES = ['number', 'string', 'date', 'label'];
 const FORMULA_ROLES = ['primary', 'secondary', 'derived'];
 
 const FIELD_ROLE_LABELS: Record<string, string> = {
   x: 'Sumbu X (Bawah)',
   y: 'Nilai Y (Utama)',
+  y_bar: 'Y-Axis (Bar)',
+  y_line: 'Y-Axis (Garis)',
   color: 'Warna Pembeda',
   size: 'Ukuran Gelembung',
   filter: 'Filter / Kategori',
-  label: 'Label Teks'
+  label: 'Label Teks',
+  target: 'Target Nilai (Angka Tetap)'
 };
 
 const FORMULA_ROLE_LABELS: Record<string, string> = {
@@ -735,17 +738,28 @@ function ChartFormModal({ chart, formulas, fieldDictionary, mode = 'create', onC
               {data.fields.length === 0 ? <EmptyConfig text="Belum ada kolom. Gunakan 'Isi Kolom & Rumus' di atas atau tambah kolom manual." /> : data.fields.map((field, index) => (
                 <div key={index} className="grid gap-2 rounded-lg bg-gray-50 p-3 md:grid-cols-[110px_minmax(160px,1fr)_130px_100px_110px_36px] md:items-center">
                   <FormSelect label="Role" value={field.field_role} disabled={isView} options={FIELD_ROLES} labels={FIELD_ROLE_LABELS} onChange={value => updateField(index, { field_role: value })} compact />
-                  <label className="text-xs font-medium text-gray-700">Kolom
-                    <SearchableSelect
-                      value={field.field_label}
-                      disabled={isView}
-                      onChange={value => selectDictionaryField(index, value)}
-                      options={[
-                        ...(!fieldDictionary.some(option => option.field_key === field.field_label) && field.field_label ? [{ value: field.field_label, label: `${field.field_label} (field lama)` }] : []),
-                        ...fieldDictionary.map(option => ({ value: option.field_key, label: `${option.field_label} (${option.field_key})`, disabled: data.fields.some((item, itemIndex) => itemIndex !== index && item.field_label === option.field_key) })),
-                      ]}
-                      className="mt-1 bg-white"
-                    />
+                  <label className="text-xs font-medium text-gray-700">{field.field_role === 'target' ? 'Angka Target' : 'Kolom'}
+                    {field.field_role === 'target' ? (
+                      <input
+                        type="text"
+                        value={field.field_label}
+                        disabled={isView}
+                        onChange={event => updateField(index, { field_label: event.target.value, required_data_type: 'number' })}
+                        placeholder="Contoh: 150000000"
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749] disabled:opacity-70"
+                      />
+                    ) : (
+                      <SearchableSelect
+                        value={field.field_label}
+                        disabled={isView}
+                        onChange={value => selectDictionaryField(index, value)}
+                        options={[
+                          ...(!fieldDictionary.some(option => option.field_key === field.field_label) && field.field_label ? [{ value: field.field_label, label: `${field.field_label} (field lama)` }] : []),
+                          ...fieldDictionary.map(option => ({ value: option.field_key, label: `${option.field_label} (${option.field_key})`, disabled: data.fields.some((item, itemIndex) => itemIndex !== index && item.field_label === option.field_key) })),
+                        ]}
+                        className="mt-1 bg-white"
+                      />
+                    )}
                   </label>
                   <FormSelect label="Tipe data" value={field.required_data_type || ''} disabled options={DATA_TYPES} allowEmpty onChange={() => undefined} compact />
                   <Checkbox label="Wajib" checked={field.is_required} disabled={isView} onChange={checked => updateField(index, { is_required: checked })} />
